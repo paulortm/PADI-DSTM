@@ -3,6 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PADI-DSTM_Library", "PADI-DSTM_Library\PADI-DSTM_Library.csproj", "{0AC9DEAA-BA54-4750-8881-F44F3139EC50}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PADI-DSTM_Master", "PADI-DSTM_Master\PADI-DSTM_Master.csproj", "{5C8B0D06-B14A-4B8C-87D3-E14274DE9BEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PADI-DSTM_DataServer", "PADI-DSTM_DataServer\PADI-DSTM_DataServer.csproj", "{1C9C43E5-58A2-456D-B085-CD25011B6A63}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PADI-DSTM_Client", "PADI-DSTM_Client\PADI-DSTM_Client.csproj", "{098E9A6C-2C2A-42E7-8A70-E1FEB5A9086B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +19,18 @@ Global
 		{0AC9DEAA-BA54-4750-8881-F44F3139EC50}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0AC9DEAA-BA54-4750-8881-F44F3139EC50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0AC9DEAA-BA54-4750-8881-F44F3139EC50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C8B0D06-B14A-4B8C-87D3-E14274DE9BEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C8B0D06-B14A-4B8C-87D3-E14274DE9BEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C8B0D06-B14A-4B8C-87D3-E14274DE9BEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C8B0D06-B14A-4B8C-87D3-E14274DE9BEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C9C43E5-58A2-456D-B085-CD25011B6A63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C9C43E5-58A2-456D-B085-CD25011B6A63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C9C43E5-58A2-456D-B085-CD25011B6A63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C9C43E5-58A2-456D-B085-CD25011B6A63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{098E9A6C-2C2A-42E7-8A70-E1FEB5A9086B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{098E9A6C-2C2A-42E7-8A70-E1FEB5A9086B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{098E9A6C-2C2A-42E7-8A70-E1FEB5A9086B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{098E9A6C-2C2A-42E7-8A70-E1FEB5A9086B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

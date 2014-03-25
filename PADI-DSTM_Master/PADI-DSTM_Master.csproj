@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>12b1d670-b5be-4b25-a26f-0cff51b73d7a</ProjectGuid>
+    <ProjectGuid>{5C8B0D06-B14A-4B8C-87D3-E14274DE9BEF}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PADI_DSTM_Master</RootNamespace>
-    <AssemblyName>PADI_DSTM_Master</AssemblyName>
+    <AssemblyName>PADI-DSTM_Master</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
