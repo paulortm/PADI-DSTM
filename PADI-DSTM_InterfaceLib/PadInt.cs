@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PADI_DSTM_Library
+namespace PADI_DSTM_CommonLib
 {
-    public class Class1
+    class PadInt
     {
     }
 }
