@@ -12,6 +12,7 @@ namespace PADI_DSTM_Library
     public class PADI_DSTM
     {
         private static IMaster master;
+        private static CurrentTransactionHolder currentTransactionHolder = new CurrentTransactionHolder();
 
         public static bool Init()
         {
@@ -30,5 +31,13 @@ namespace PADI_DSTM_Library
         {
             return null;
         }
+
+        public static PadInt AccessPadInt(int uid)
+        {
+
+            return null;
+        }
+
+        public static
     }
 }
