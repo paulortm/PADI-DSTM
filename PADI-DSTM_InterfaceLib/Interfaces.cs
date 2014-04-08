@@ -11,8 +11,11 @@ namespace PADI_DSTM_CommonLib
     {
         void check();
 
-        IDataServer chooseDataServer(int uid);
-
+        // Registers the 'server' on the system.
+        // returns the server id.
+        int registerDataServer(string url);
+        
+        string chooseDataServer(int uid);
     }
 
     public interface IDataServer

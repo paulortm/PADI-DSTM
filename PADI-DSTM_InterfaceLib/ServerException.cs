@@ -28,4 +28,13 @@ namespace PADI_DSTM_CommonLib
             return this.message;
         }
     }
+
+    public class NoDataServerException : ServerException
+    {
+        public NoDataServerException(String method)
+            : base("The operation \'" + method + "\' is invalid when the master doesn't have data servers.")
+        {
+            // empty
+        }
+    }
 }

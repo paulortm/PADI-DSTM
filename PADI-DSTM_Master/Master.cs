@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PADI_DSTM_Master
 {
-    class Master
+    class App
     {
         static void Main(string[] args)
         {
@@ -25,11 +25,69 @@ namespace PADI_DSTM_Master
 
     class MasterServer : MarshalByRefObject, IMaster
     {
+        // <data server id, data server object>
+        private Dictionary<int, String> dataServers = new Dictionary<int, String>();
+
+        // <data server id, number of padints>
+        private Dictionary<int, int> numberOfPadInts = new Dictionary<int, int>();
+
+        private int nextId = 0;
+
         public void check()
         {
             Console.WriteLine("Checked!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
 
+        // maybe needs to be synched
+        private int generateId()
+        {
+            return nextId++;
+        }
+
+        private void addDataServer(int id, String url)
+        {
+            dataServers.Add(id, url);
+            numberOfPadInts.Add(id, 0);
+        }
+
+        private IDataServer getDataServer(int id)
+        {
+            String url = dataServers[id];
+            IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), url);
+            return server;
+        }
+
+        // Registers the 'server' on the system.
+        // returns the server id.
+        int registerDataServer(String url)
+        {
+            int id = generateId();
+            addDataServer(id, url);
+            Console.WriteLine("DataServer " + id + " registered at " + url);
+            return id;
+        }
+
+        IDataServer chooseDataServer(int uid)
+        {
+            if (dataServers.Count == 0)
+            {
+                throw new NoDataServerException("choseDataServer");
+            }
+
+            // find which data server is storing less PadInts
+            KeyValuePair<int, int> first = numberOfPadInts.First();
+            int serverId = first.Key;
+            int minimumLoad = first.Value;
+            foreach (KeyValuePair<int, int> entry in numberOfPadInts)
+            {
+                if (entry.Value < minimumLoad)
+                {
+                    serverId = entry.Key;
+                    minimumLoad = entry.Value;
+                }
+            }
+            return getDataServer(serverId);
+        }
 
     }
 }

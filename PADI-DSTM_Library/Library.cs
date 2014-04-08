@@ -22,13 +22,14 @@ namespace PADI_DSTM_Library
             TcpChannel channel = new TcpChannel(port);
             ChannelServices.RegisterChannel(channel, true);
 
-            master = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
-            master.check();
+            PADI_DSTM_Library.master = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
+            PADI_DSTM_Library.master.check();
             return true;
         }
 
         public static PadInt CreatePadInt(int uid)
         {
+
             return null;
         }
 

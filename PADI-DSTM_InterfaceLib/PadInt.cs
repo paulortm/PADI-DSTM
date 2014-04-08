@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace PADI_DSTM_CommonLib
 {
     [Serializable]
-    class PadInt
+    public class PadInt
     {
         private int uid;
         private IDataServer dataServer;
