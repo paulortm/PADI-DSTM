@@ -44,7 +44,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PADI-DSTM_InterfaceLib\PADI-DSTM_CommonLib.csproj">
+    <ProjectReference Include="..\PADI-DSTM_CommonLib\PADI-DSTM_CommonLib.csproj">
       <Project>{140d3748-f43c-45b9-97d7-5315fd2333f7}</Project>
       <Name>PADI-DSTM_CommonLib</Name>
     </ProjectReference>

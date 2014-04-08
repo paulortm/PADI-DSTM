@@ -25,6 +25,9 @@ namespace PADI_DSTM_DataServer
             ChannelServices.RegisterChannel(channelServ, true);
             RemotingConfiguration.RegisterWellKnownServiceType(typeof(DataServer), Constants.REMOTE_DATASERV_OBJ_NAME, WellKnownObjectMode.Singleton);
 
+            IMaster master = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
+            master.registerDataServer(dataServerUrl);
+
             Console.WriteLine("Press <enter> to exit");
             Console.ReadLine();
         }
@@ -38,6 +41,7 @@ namespace PADI_DSTM_DataServer
         {
             try {
                 padints.Add(uid, null);
+                Console.WriteLine("PadInt created: " + uid);
             } catch (ArgumentException e) {
                 throw new InvalidPadIntIdException(uid);
             }

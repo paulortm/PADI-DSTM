@@ -16,7 +16,7 @@ namespace PADI_DSTM_Master
         {
             TcpChannel channelServ = new TcpChannel(Constants.MASTER_SERV_PORT);
             ChannelServices.RegisterChannel(channelServ, true);
-            RemotingConfiguration.RegisterWellKnownServiceType(typeof(MasterServer), Constants.REMOTE_DATASERV_OBJ_NAME, WellKnownObjectMode.Singleton);
+            RemotingConfiguration.RegisterWellKnownServiceType(typeof(MasterServer), Constants.REMOTE_MASTER_OBJ_NAME, WellKnownObjectMode.Singleton);
 
             Console.WriteLine("Press <enter> to exit");
             Console.ReadLine();
@@ -59,7 +59,7 @@ namespace PADI_DSTM_Master
 
         // Registers the 'server' on the system.
         // returns the server id.
-        int registerDataServer(String url)
+        public int registerDataServer(String url)
         {
             int id = generateId();
             addDataServer(id, url);
@@ -68,7 +68,7 @@ namespace PADI_DSTM_Master
         }
 
         // return - PadInt on the server with the given uid
-        PadInt  createPadIntOnDataServer(int uid)
+        public PadInt  createPadIntOnDataServer(int uid)
         {
             if (dataServers.Count == 0)
             {
@@ -94,6 +94,7 @@ namespace PADI_DSTM_Master
             // update info on master
             numberOfPadInts[serverId]++;
 
+            Console.WriteLine("Delegated PadInt to " + dataServers[serverId]);
             return padInt;
         }
 

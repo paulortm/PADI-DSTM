@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PADI_DSTM_CommonLib</RootNamespace>
-    <AssemblyName>PADI-DSTM_InterfaceLib</AssemblyName>
+    <AssemblyName>PADI-DSTM_CommonLib</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

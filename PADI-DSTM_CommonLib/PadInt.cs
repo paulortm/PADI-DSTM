@@ -21,8 +21,7 @@ namespace PADI_DSTM_CommonLib
 
         public int Read()
         {
-            // incomplete
-            return getValue();
+            return 0;
         }
 
         public void Write(int value)

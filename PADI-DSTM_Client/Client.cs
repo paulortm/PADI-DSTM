@@ -1,4 +1,5 @@
-﻿using PADI_DSTM_Library;
+﻿using PADI_DSTM_CommonLib;
+using PADI_DSTM_Library;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace PADI_DSTM_Client
         {
             Console.ReadLine();
             PADI_DSTM.Init();
+            PadInt p = PADI_DSTM.CreatePadInt(0);
             Console.ReadLine();
         }
     }

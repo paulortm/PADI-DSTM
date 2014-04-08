@@ -24,6 +24,7 @@ namespace PADI_DSTM_CommonLib
     // Passed to the PadInt by the PADI_DSTM on the AccessPadInt.
     // Used by the PadInt to know to which transaction read and
     // write operations belong.
+    [Serializable]
     public class CurrentTransactionHolder
     {
         private Transaction currentTransaction = null;

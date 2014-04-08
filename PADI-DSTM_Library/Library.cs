@@ -29,13 +29,7 @@ namespace PADI_DSTM_Library
 
         public static PadInt CreatePadInt(int uid)
         {
-
-
-
-
-
-
-            return null;
+            return PADI_DSTM.master.createPadIntOnDataServer(uid);
         }
 
         public static PadInt AccessPadInt(int uid)
