@@ -16,7 +16,7 @@ namespace PADI_DSTM_Master
         {
             TcpChannel channelServ = new TcpChannel(Constants.MASTER_SERV_PORT);
             ChannelServices.RegisterChannel(channelServ, true);
-            RemotingConfiguration.RegisterWellKnownServiceType(typeof(MasterServer), Constants.REMOTE_MASTER_OBJ_NAME, WellKnownObjectMode.Singleton);
+            RemotingConfiguration.RegisterWellKnownServiceType(typeof(MasterServer), Constants.REMOTE_DATASERV_OBJ_NAME, WellKnownObjectMode.Singleton);
 
             Console.WriteLine("Press <enter> to exit");
             Console.ReadLine();

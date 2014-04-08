@@ -29,12 +29,30 @@ namespace PADI_DSTM_CommonLib
         }
     }
 
-    public class NoDataServerException : ServerException
+    public class InvalidPadIntIdException : ServerException
     {
-        public NoDataServerException(String method)
-            : base("The operation \'" + method + "\' is invalid when the master doesn't have data servers.")
+        public InvalidPadIntIdException(int uid)
+            : base("There is already a PadInt with the uid " + uid)
         {
-            // empty
+            //empty
+        }
+    }
+
+    public class NullPadIntException : ServerException
+    {
+        public NullPadIntException(int uid)
+            : base("The PadInt with uid " + uid + "is null")
+        {
+            //empty
+        }
+    }
+
+    public class InexistentPadIntException : ServerException
+    {
+        public InexistentPadIntException(int uid)
+            : base("The PadInt with uid " + uid + "does not exist")
+        {
+            //empty
         }
     }
 }

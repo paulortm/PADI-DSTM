@@ -10,13 +10,13 @@ namespace PADI_DSTM_CommonLib
     public class PadInt
     {
         private int uid;
-        private IDataServer dataServer;
+        private string dataServerUrl;
         private CurrentTransactionHolder currentTransactionHolder;
 
-        public PadInt(int uid, IDataServer dataServer)
+        public PadInt(int uid, string dataServerUrl)
         {
             this.uid = uid;
-            this.dataServer = dataServer;
+            this.dataServerUrl = dataServerUrl;
         }
 
         public int Read()
