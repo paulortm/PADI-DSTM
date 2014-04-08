@@ -31,17 +31,17 @@ namespace PADI_DSTM_Master
         // <data server id, number of padints>
         private Dictionary<int, int> numberOfPadInts = new Dictionary<int, int>();
 
-        private int nextId = 0;
+        private int dataServerId = 0;
 
         public void check()
         {
-            Console.WriteLine("Checked!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Console.WriteLine("Checked!!!!!!!!!!!!!!!!!!!!!!");
         }
 
         // maybe needs to be synched
         private int generateId()
         {
-            return nextId++;
+            return dataServerId++;
         }
 
         private void addDataServer(int id, String url)
@@ -67,7 +67,8 @@ namespace PADI_DSTM_Master
             return id;
         }
 
-        IDataServer chooseDataServer(int uid)
+        // return - PadInt on the server with the given uid
+        PadInt  createPadIntOnDataServer(int uid)
         {
             if (dataServers.Count == 0)
             {
@@ -86,8 +87,17 @@ namespace PADI_DSTM_Master
                     minimumLoad = entry.Value;
                 }
             }
-            return getDataServer(serverId);
+
+            // get server object and create the padint
+            IDataServer server = getDataServer(serverId);
+            PadInt padInt = server.createPadInt(uid);
+            // update info on master
+            numberOfPadInts[serverId]++;
+
+            return padInt;
         }
+
+
 
     }
 }
