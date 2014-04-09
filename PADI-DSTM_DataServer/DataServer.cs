@@ -8,6 +8,8 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
 using System.Threading.Tasks;
 
+
+
 namespace PADI_DSTM_DataServer
 {
     class DataServerApp
@@ -37,8 +39,18 @@ namespace PADI_DSTM_DataServer
     {
         private Dictionary<int, int?> padints = new Dictionary<int, int?>();
 
+        private bool doFail = false;
+        private bool doFreeze = false;
+
         public PadInt createPadInt(int uid)
         {
+            if(doFail)
+            {
+                Console.WriteLine("Fail mode activated, PadInt could not be created");
+
+                throw new ServerFailedException(Util.getLocalIP());
+            }
+
             try {
                 padints.Add(uid, null);
                 Console.WriteLine("PadInt created: " + uid);
@@ -75,6 +87,30 @@ namespace PADI_DSTM_DataServer
             {
                 throw new InexistentPadIntException(uid);
             }
+        }
+
+        public bool Fail()
+        {
+            doFail = true;
+            Console.WriteLine("Fail mode activated");
+
+            return true;
+        }
+
+        public bool Recover()
+        {
+            if(doFreeze)
+            {
+
+            }
+
+            doFail = false;
+            doFreeze = false;
+
+
+
+
+            return true;
         }
     }
 }

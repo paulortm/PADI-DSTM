@@ -65,4 +65,22 @@ namespace PADI_DSTM_CommonLib
         }
 
     }
+
+
+    public class ServerFailedException : ServerException
+    {
+        public ServerFailedException(String serverUrl)
+            : base("Server on: " + serverUrl + "\' is in fail mode.")
+        {
+            //empty
+        }
+
+    }
+
+
+
+
+
+
+
 }

@@ -31,5 +31,9 @@ namespace PADI_DSTM_CommonLib
         // uid - pading id
         // value - the value to be written on the padint
         void Write(int tid, int uid, int value);
+
+        bool Fail();
+
+        bool Recover();
     }
 }

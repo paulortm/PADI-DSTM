@@ -37,5 +37,22 @@ namespace PADI_DSTM_Library
 
             return null;
         }
+
+        public static bool Fail(String url)
+        {
+            IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), url);
+
+            return server.Fail();
+        }
+
+
+        public static bool Recover(String url)
+        {
+            IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), url);
+
+            return server.Recover();
+        }
+
+
     }
 }
