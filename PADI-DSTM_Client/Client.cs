@@ -20,7 +20,7 @@ namespace PADI_DSTM_Client
                 PadInt p = PADI_DSTM.CreatePadInt(0);
                 PadInt p1 = PADI_DSTM.AccessPadInt(2);
             }
-            catch (NoDataServerException e)
+            catch (ServerException e)
             {
                 Console.WriteLine(e.Message);
             }

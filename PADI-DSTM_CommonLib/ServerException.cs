@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace PADI_DSTM_CommonLib
 {
     [Serializable]
-    public abstract class ServerException : ApplicationException
+    public class ServerException : ApplicationException
     {
         private String message;
 
@@ -45,6 +45,7 @@ namespace PADI_DSTM_CommonLib
         }
     }
 
+    [Serializable]
     public class InvalidPadIntIdException : ServerException
     {
         public InvalidPadIntIdException(int uid)
@@ -52,8 +53,20 @@ namespace PADI_DSTM_CommonLib
         {
             //empty
         }
+
+        public InvalidPadIntIdException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        {
+            //empty
+	    }
+
+        public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+        }
     }
 
+    [Serializable]
     public class NullPadIntException : ServerException
     {
         public NullPadIntException(int uid)
@@ -61,8 +74,20 @@ namespace PADI_DSTM_CommonLib
         {
             //empty
         }
+
+        public NullPadIntException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        {
+            //empty
+	    }
+
+        public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+        }
     }
 
+    [Serializable]
     public class InexistentPadIntException : ServerException
     {
         public InexistentPadIntException(int uid)
@@ -70,8 +95,20 @@ namespace PADI_DSTM_CommonLib
         {
             //empty
         }
+
+        public InexistentPadIntException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        {
+            //empty
+	    }
+
+        public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+        }
     }
 
+    [Serializable]
     public class NoDataServerException : ServerException
     {
         public NoDataServerException(String methodName)
@@ -80,8 +117,20 @@ namespace PADI_DSTM_CommonLib
             //empty
         }
 
+        public NoDataServerException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        {
+            //empty
+	    }
+
+        public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+        }
+
     }
 
+    [Serializable]
     public class ServerFailedException : ServerException
     {
         public ServerFailedException(String serverUrl)
@@ -90,5 +139,15 @@ namespace PADI_DSTM_CommonLib
             //empty
         }
 
+        public ServerFailedException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        {
+            //empty
+	    }
+
+        public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+        }
     }
 }

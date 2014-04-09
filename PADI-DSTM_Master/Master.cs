@@ -88,7 +88,7 @@ namespace PADI_DSTM_Master
         {
             if (dataServers.Count == 0)
             {
-                throw new NoDataServerException("choseDataServer");
+                throw new NoDataServerException("createPadIntOnDataServer");
             }
 
             // find which data server is storing less PadInts
