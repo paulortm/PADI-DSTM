@@ -39,5 +39,8 @@ namespace PADI_DSTM_CommonLib
         bool Fail();
 
         bool Recover();
+
+        // tid - transaction id
+        bool Abort(int tid);
     }
 }

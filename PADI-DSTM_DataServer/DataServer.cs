@@ -107,10 +107,13 @@ namespace PADI_DSTM_DataServer
             doFail = false;
             doFreeze = false;
 
-
-
-
             return true;
+        }
+
+        public bool Abort(int tid)
+        {
+            // implement
+            return false;
         }
     }
 }

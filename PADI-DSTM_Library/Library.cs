@@ -27,13 +27,6 @@ namespace PADI_DSTM_Library
             return true;
         }
 
-        public static bool TxBegin()
-        {
-            Transaction t = PADI_DSTM.master.createTransaction();
-            PADI_DSTM.currentTransactionHolder.set(t);
-            return true;
-        }
-
         public static PadInt CreatePadInt(int uid)
         {
 
@@ -56,7 +49,6 @@ namespace PADI_DSTM_Library
             return server.Fail();
         }
 
-
         public static bool Recover(String url)
         {
             IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), url);
@@ -64,6 +56,22 @@ namespace PADI_DSTM_Library
             return server.Recover();
         }
 
+        public static bool TxBegin()
+        {
+            Transaction t = PADI_DSTM.master.createTransaction();
+            PADI_DSTM.currentTransactionHolder.set(t);
+            return true;
+        }
 
+        public static bool TxAbort() {
+            Transaction currentTransaction = PADI_DSTM.currentTransactionHolder.get();
+            PADI_DSTM.currentTransactionHolder.set(null);
+            foreach (String serverUrl in currentTransaction.getServers())
+            {
+                IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), Constants.MASTER_SERVER_URL);
+                dataServer.Abort(currentTransaction.getId());
+            }
+            return true;
+        }
     }
 }

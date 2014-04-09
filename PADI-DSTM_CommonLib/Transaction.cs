@@ -10,6 +10,7 @@ namespace PADI_DSTM_CommonLib
     public class Transaction
     {
         private int id;
+        private List<String> serverUrls = null; // servers where the transaction is running
 
         public Transaction(int id)
         {
@@ -19,6 +20,19 @@ namespace PADI_DSTM_CommonLib
         public int getId()
         {
             return this.id;
+        }
+
+        public void addServer(String serverUrl)
+        {
+            if(this.serverUrls == null) {
+                this.serverUrls = new List<String>();
+            }
+            this.serverUrls.Add(serverUrl);
+        }
+
+        public List<String> getServers()
+        {
+            return this.serverUrls;
         }
     }
 
