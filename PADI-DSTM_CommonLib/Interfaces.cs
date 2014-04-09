@@ -16,6 +16,8 @@ namespace PADI_DSTM_CommonLib
         int registerDataServer(string url);
 
         PadInt createPadIntOnDataServer(int uid);
+
+        PadInt accessPadIntOnDataServer(int uid);
     }
 
     public interface IDataServer

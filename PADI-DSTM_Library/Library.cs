@@ -29,13 +29,16 @@ namespace PADI_DSTM_Library
 
         public static PadInt CreatePadInt(int uid)
         {
-            return PADI_DSTM.master.createPadIntOnDataServer(uid);
+            PadInt padint = PADI_DSTM.master.createPadIntOnDataServer(uid);
+            padint.setTransactionHolder(currentTransactionHolder);
+            return padint;
         }
 
         public static PadInt AccessPadInt(int uid)
         {
-
-            return null;
+            PadInt padint = PADI_DSTM.master.accessPadIntOnDataServer(uid);
+            padint.setTransactionHolder(currentTransactionHolder);
+            return padint;
         }
 
         public static bool Fail(String url)

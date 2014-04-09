@@ -25,11 +25,14 @@ namespace PADI_DSTM_Master
 
     class MasterServer : MarshalByRefObject, IMaster
     {
-        // <data server id, data server object>
+        // <data server id, data server url>
         private Dictionary<int, String> dataServers = new Dictionary<int, String>();
 
         // <data server id, number of padints>
         private Dictionary<int, int> numberOfPadInts = new Dictionary<int, int>();
+
+        // <PadInt uid, servers url>
+        private Dictionary<int, List<int>> locationOfPadInts = new Dictionary<int, List<int>>();
 
         private int dataServerId = 0;
 
@@ -55,6 +58,19 @@ namespace PADI_DSTM_Master
             String url = dataServers[id];
             IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), url);
             return server;
+        }
+
+        private String getDataServerUrl(int id)
+        {
+            String url = dataServers[id];
+            return url;
+        }
+
+        // uid The uid of the PadInt
+        // Returns the url of the dataserver where the PadInd is present
+        private String getPrimaryDataServerUrl(int uid)
+        {
+            return this.getDataServerUrl(locationOfPadInts[uid][0]);
         }
 
         // Registers the 'server' on the system.
@@ -98,7 +114,23 @@ namespace PADI_DSTM_Master
             return padInt;
         }
 
+        // return - PadInt with the given uid
+        public PadInt accessPadIntOnDataServer(int uid)
+        {
+            if (dataServers.Count == 0)
+            {
+                throw new NoDataServerException("accessPadIntOnDataServer");
+            }
 
+            if (!this.locationOfPadInts.ContainsKey(uid))
+            {
+                throw new InexistentPadIntException(uid);
+            }
+            PadInt padInt = new PadInt(uid, this.getPrimaryDataServerUrl(uid));
+
+            Console.WriteLine("Returned PadInt presented into " + this.getPrimaryDataServerUrl(uid));
+            return padInt;
+        }
 
     }
 }

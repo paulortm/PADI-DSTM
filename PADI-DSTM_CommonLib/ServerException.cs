@@ -9,23 +9,39 @@ using System.Threading.Tasks;
 namespace PADI_DSTM_CommonLib
 {
     [Serializable]
-    public abstract class ServerException : RemotingException, ISerializable
+    public abstract class ServerException : ApplicationException
     {
         private String message;
+
+        public ServerException()
+        {
+            this.message = String.Empty;
+        }
 
         public ServerException(String message)
         {
             this.message = message;
         }
 
-        public ServerException(SerializationInfo info, StreamingContext context)
+        public ServerException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
         {
-            this.message = (string)info.GetValue("message", typeof(string));
+            message = (String)info.GetValue("message", typeof(String));
+	    }
+
+        public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue("message", message);
         }
 
-        public string getMessage()
+        // Returns the exception information. 
+        public override string Message
         {
-            return this.message;
+            get
+            {
+                return message;
+            }
         }
     }
 
@@ -66,7 +82,6 @@ namespace PADI_DSTM_CommonLib
 
     }
 
-
     public class ServerFailedException : ServerException
     {
         public ServerFailedException(String serverUrl)
@@ -76,11 +91,4 @@ namespace PADI_DSTM_CommonLib
         }
 
     }
-
-
-
-
-
-
-
 }

@@ -19,14 +19,31 @@ namespace PADI_DSTM_CommonLib
             this.dataServerUrl = dataServerUrl;
         }
 
+        public void setTransactionHolder(CurrentTransactionHolder currentTransactionHolder)
+        {
+            this.currentTransactionHolder = currentTransactionHolder;
+        }
+
         public int Read()
         {
-            return 0;
+            if (this.currentTransactionHolder == null)
+            {
+
+            }
+
+            IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), dataServerUrl);
+            return server.Read(this.currentTransactionHolder.get().getId(), this.uid);
         }
 
         public void Write(int value)
         {
-            // incomplete
+            if (this.currentTransactionHolder == null)
+            {
+
+            }
+
+            IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), dataServerUrl);
+            server.Write(this.currentTransactionHolder.get().getId(), this.uid, value);
         }
     }
 }

@@ -14,15 +14,15 @@ namespace PADI_DSTM_Client
         {
             Console.ReadLine();
             PADI_DSTM.Init();
-            PadInt p = PADI_DSTM.CreatePadInt(0);
-            PADI_DSTM.Fail("tcp://localhost:8888/DataServer");
+
             try
             {
-                PadInt p2 = PADI_DSTM.CreatePadInt(1);
+                PadInt p = PADI_DSTM.CreatePadInt(0);
+                PadInt p1 = PADI_DSTM.AccessPadInt(2);
             }
-            catch (ServerException ex)
+            catch (NoDataServerException e)
             {
-                Console.WriteLine(ex.getMessage());
+                Console.WriteLine(e.Message);
             }
 
             Console.ReadLine();
