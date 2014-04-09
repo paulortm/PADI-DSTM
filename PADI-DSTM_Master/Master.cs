@@ -35,6 +35,7 @@ namespace PADI_DSTM_Master
         private Dictionary<int, List<int>> locationOfPadInts = new Dictionary<int, List<int>>();
 
         private int dataServerId = 0;
+        private int transactionId = 0;
 
         public void check()
         {
@@ -45,6 +46,11 @@ namespace PADI_DSTM_Master
         private int generateId()
         {
             return dataServerId++;
+        }
+
+        private int generateTransactionId()
+        {
+            return transactionId++;
         }
 
         private void addDataServer(int id, String url)
@@ -132,5 +138,9 @@ namespace PADI_DSTM_Master
             return padInt;
         }
 
+        public Transaction createTransaction() {
+            Transaction t = new Transaction(generateTransactionId());
+            return t;
+        }
     }
 }

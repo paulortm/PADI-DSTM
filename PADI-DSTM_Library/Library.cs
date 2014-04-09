@@ -27,6 +27,13 @@ namespace PADI_DSTM_Library
             return true;
         }
 
+        public static bool TxBegin()
+        {
+            Transaction t = PADI_DSTM.master.createTransaction();
+            PADI_DSTM.currentTransactionHolder.set(t);
+            return true;
+        }
+
         public static PadInt CreatePadInt(int uid)
         {
 

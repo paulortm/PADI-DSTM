@@ -18,6 +18,8 @@ namespace PADI_DSTM_CommonLib
         PadInt createPadIntOnDataServer(int uid);
 
         PadInt accessPadIntOnDataServer(int uid);
+
+        Transaction createTransaction();
     }
 
     public interface IDataServer

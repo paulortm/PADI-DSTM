@@ -24,8 +24,5 @@ namespace PADI_DSTM_Client
             {
                 Console.WriteLine(e.Message);
             }
-
-            Console.ReadLine();
-        }
     }
 }

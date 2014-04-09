@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace PADI_DSTM_CommonLib
 {
+    [Serializable]
     public class Transaction
     {
         private int id;
