@@ -77,6 +77,7 @@ namespace PADI_DSTM_Library
         public static bool TxCommit()
         {
             Transaction currentTransaction = PADI_DSTM.currentTransactionHolder.get();
+            bool canCommit = true;
             foreach (String serverUrl in currentTransaction.getServers())
             {
                 IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), Constants.MASTER_SERVER_URL);

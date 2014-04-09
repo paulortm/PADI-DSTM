@@ -119,11 +119,13 @@ namespace PADI_DSTM_DataServer
         public bool canCommit(int tid)
         {
             // implement
+            return false;
         }
 
         public bool Commit(int tid)
         {
             //
+            return false;
         }
     }
 }
