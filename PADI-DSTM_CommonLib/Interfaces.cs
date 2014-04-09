@@ -42,5 +42,11 @@ namespace PADI_DSTM_CommonLib
 
         // tid - transaction id
         bool Abort(int tid);
+
+        // tid - transaction id
+        bool canCommit(int tid);
+
+        // tid - transaction id
+        bool Commit(int tid);
     }
 }

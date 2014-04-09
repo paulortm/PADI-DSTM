@@ -65,11 +65,26 @@ namespace PADI_DSTM_Library
 
         public static bool TxAbort() {
             Transaction currentTransaction = PADI_DSTM.currentTransactionHolder.get();
-            PADI_DSTM.currentTransactionHolder.set(null);
             foreach (String serverUrl in currentTransaction.getServers())
             {
                 IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), Constants.MASTER_SERVER_URL);
                 dataServer.Abort(currentTransaction.getId());
+            }
+            PADI_DSTM.currentTransactionHolder.set(null);
+            return true;
+        }
+
+        public static bool TxCommit()
+        {
+            Transaction currentTransaction = PADI_DSTM.currentTransactionHolder.get();
+            foreach (String serverUrl in currentTransaction.getServers())
+            {
+                IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), Constants.MASTER_SERVER_URL);
+                if (!dataServer.canCommit(currentTransaction.getId()))
+                {
+                    canCommit = false;
+                    break;
+                }
             }
             return true;
         }

@@ -115,5 +115,15 @@ namespace PADI_DSTM_DataServer
             // implement
             return false;
         }
+
+        public bool canCommit(int tid)
+        {
+            // implement
+        }
+
+        public bool Commit(int tid)
+        {
+            //
+        }
     }
 }
