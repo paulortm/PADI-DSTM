@@ -85,6 +85,7 @@ namespace PADI_DSTM_Library
 
             // voting
             Transaction currentTransaction = PADI_DSTM.currentTransactionHolder.get();
+            PADI_DSTM.currentTransactionHolder.set(null);
             foreach (String serverUrl in currentTransaction.getServers())
             {
                 IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);

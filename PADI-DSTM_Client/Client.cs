@@ -20,6 +20,10 @@ namespace PADI_DSTM_Client
                 PADI_DSTM.TxBegin();
                 p.Write(5);
                 PADI_DSTM.TxCommit();
+
+                PADI_DSTM.TxBegin();
+                p.Write(9);
+                PADI_DSTM.TxAbort();
                 Console.ReadLine();
             }
             catch (ServerException e)

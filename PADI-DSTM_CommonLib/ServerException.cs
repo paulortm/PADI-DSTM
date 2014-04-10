@@ -155,7 +155,7 @@ namespace PADI_DSTM_CommonLib
     public class TransactionNotFoundException : ServerException
     {
         public TransactionNotFoundException(int transactionId, String serverUrl)
-            : base("The transaction " + transactionId + " was not found at " + serverUrl);
+            : base("The transaction " + transactionId + " was not found at " + serverUrl)
         {
             //empty
         }

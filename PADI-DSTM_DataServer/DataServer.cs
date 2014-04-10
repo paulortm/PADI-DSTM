@@ -58,7 +58,7 @@ namespace PADI_DSTM_DataServer
             try {
                 padints.Add(uid, null);
                 Console.WriteLine("PadInt created: " + uid);
-            } catch (ArgumentException e) {
+            } catch (ArgumentException) {
                 throw new InvalidPadIntIdException(uid);
             }
             
