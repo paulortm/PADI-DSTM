@@ -67,29 +67,50 @@ namespace PADI_DSTM_DataServer
 
         public int Read(int tid, int uid)
         {
-            if (padints.ContainsKey(uid))
+            if (!padints.ContainsKey(uid))
+            {
+                throw new InexistentPadIntException(uid);
+            }
+
+            if (this.uncommitedChanges.ContainsKey(tid) && this.uncommitedChanges[tid].ContainsKey(uid))
+            {
+                return this.uncommitedChanges[tid][uid];
+            }
+            else
             {
                 int? value = padints[uid];
                 if (value == null)
                     throw new NullPadIntException(uid);
                 return (int)value;
-            }
-            else
-            {
-                throw new InexistentPadIntException(uid);
-            }
-            
+            }        
         }
 
         public void Write(int tid, int uid, int value)
         {
-            if (padints.ContainsKey(uid))
+            if (!padints.ContainsKey(uid))
             {
-                padints[uid] = value;
+                throw new InexistentPadIntException(uid);
+            }
+
+            if (this.uncommitedChanges.ContainsKey(tid))
+            {
+                Dictionary<int, int> padIntsInTransaction = this.uncommitedChanges[tid];
+
+                if (padIntsInTransaction.ContainsKey(uid))
+                {
+                    padIntsInTransaction[uid] = value;
+                }
+                else
+                {
+                    padIntsInTransaction.Add(uid, value);
+                }
             }
             else
             {
-                throw new InexistentPadIntException(uid);
+                Dictionary<int, int> changedPadInts = new Dictionary<int,int>();
+                changedPadInts.Add(uid, value);
+
+                this.uncommitedChanges.Add(tid, changedPadInts);
             }
         }
 
