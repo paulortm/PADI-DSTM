@@ -74,7 +74,7 @@ namespace PADI_DSTM_Library
             Transaction currentTransaction = PADI_DSTM.currentTransactionHolder.get();
             foreach (String serverUrl in currentTransaction.getServers())
             {
-                IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), Constants.MASTER_SERVER_URL);
+                IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
                 dataServer.Abort(currentTransaction.getId());
             }
             PADI_DSTM.currentTransactionHolder.set(null);

@@ -27,7 +27,10 @@ namespace PADI_DSTM_CommonLib
             if(this.serverUrls == null) {
                 this.serverUrls = new List<String>();
             }
-            this.serverUrls.Add(serverUrl);
+            if (!this.serverUrls.Contains(serverUrl))
+            {
+                this.serverUrls.Add(serverUrl);
+            }
         }
 
         public List<String> getServers()

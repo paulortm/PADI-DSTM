@@ -218,6 +218,7 @@ namespace PADI_DSTM_DataServer
                 this.padints[uid] = value;
             }
 
+            this.uncommitedChanges.Remove(tid);
             // When the synchronization is implemented it should also release 
             // the locks on the padInts used by this thread.
 
