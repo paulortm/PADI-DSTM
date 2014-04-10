@@ -16,6 +16,7 @@ namespace PADI_DSTM_Client
 
             try
             {
+
                 PadInt p = PADI_DSTM.CreatePadInt(0);
                 PADI_DSTM.TxBegin();
                 p.Write(5);
@@ -25,6 +26,7 @@ namespace PADI_DSTM_Client
                 p.Write(9);
                 PADI_DSTM.TxAbort();
                 Console.ReadLine();
+
             }
             catch (ServerException e)
             {
@@ -35,6 +37,9 @@ namespace PADI_DSTM_Client
                 PADI_DSTM.TxCommit();
                 Console.ReadLine();
             }
+
+
+            Console.ReadLine();
         }
     }
 }

@@ -38,6 +38,8 @@ namespace PADI_DSTM_CommonLib
 
         bool Fail();
 
+        bool Freeze();
+
         bool Recover();
 
         // tid - transaction id

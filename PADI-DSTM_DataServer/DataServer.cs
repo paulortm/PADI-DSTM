@@ -48,12 +48,7 @@ namespace PADI_DSTM_DataServer
 
         public PadInt createPadInt(int uid)
         {
-            if(doFail)
-            {
-                Console.WriteLine("Fail mode activated, PadInt could not be created");
-
-                throw new ServerFailedException(Util.getLocalIP());
-            }
+            checkFailOrFreeze();
 
             try {
                 padints.Add(uid, null);
@@ -67,6 +62,8 @@ namespace PADI_DSTM_DataServer
 
         public int Read(int tid, int uid)
         {
+            checkFailOrFreeze();
+
             if (!padints.ContainsKey(uid))
             {
                 throw new InexistentPadIntException(uid);
@@ -108,6 +105,8 @@ namespace PADI_DSTM_DataServer
 
         public void Write(int tid, int uid, int value)
         {
+            checkFailOrFreeze();
+
             if (!padints.ContainsKey(uid))
             {
                 throw new InexistentPadIntException(uid);
@@ -143,17 +142,46 @@ namespace PADI_DSTM_DataServer
             return true;
         }
 
+        public bool Freeze()
+        {
+            doFreeze = true;
+            Console.WriteLine("Freeze mode activated");
+
+            return true;
+        }
+
         public bool Recover()
         {
-            if(doFreeze)
-            {
-
-            }
-
             doFail = false;
             doFreeze = false;
 
             return true;
+        }
+
+        private void checkFailOrFreeze()
+        {
+            if(doFail)
+            {
+                Console.WriteLine("Fail mode activated");
+
+                throw new ServerFailedException(Util.getLocalIP());
+            }
+
+            if(doFreeze)
+            {
+                Console.WriteLine("Freeze mode activated");
+
+                while(doFreeze)
+                {
+                    // wait recover
+                    if(doFail)
+                    {
+                        Console.WriteLine("Fail mode activated");
+
+                        throw new ServerFailedException(Util.getLocalIP());
+                    }
+                }
+            }
         }
 
         public bool Abort(int tid)
