@@ -150,4 +150,25 @@ namespace PADI_DSTM_CommonLib
             base.GetObjectData(info, context);
         }
     }
+
+    [Serializable]
+    public class TransactionNotFoundException : ServerException
+    {
+        public TransactionNotFoundException(int transactionId, String serverUrl)
+            : base("The transaction " + transactionId + " was not found at " + serverUrl);
+        {
+            //empty
+        }
+
+        public TransactionNotFoundException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        {
+            //empty
+        }
+
+        public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+        }
+    }
 }

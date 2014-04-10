@@ -137,19 +137,41 @@ namespace PADI_DSTM_DataServer
 
         public bool Abort(int tid)
         {
-            // implement
+            if(!this.uncommitedChanges.ContainsKey(tid))
+            {
+                throw new TransactionNotFoundException(tid, DataServerApp.dataServerUrl);
+            }
+
+            this.uncommitedChanges.Remove(tid);
+            // When the synchronization is implemented it should also release 
+            // the locks on the padInts used by this thread.
             return true;
         }
 
         public bool canCommit(int tid)
         {
-            // implement
+            // used only to check if this server is running
             return true;
         }
 
         public bool Commit(int tid)
         {
-            // implement
+            if (!this.uncommitedChanges.ContainsKey(tid))
+            {
+                throw new TransactionNotFoundException(tid, DataServerApp.dataServerUrl);
+            }
+
+            // save the values on the padints dictionary
+            Dictionary<int, int> transactionValues = this.uncommitedChanges[tid];
+            foreach(KeyValuePair<int, int> padintValue in transactionValues) {
+                int uid = padintValue.Key;
+                int value = padintValue.Value;
+                this.padints[uid] = value;
+            }
+
+            // When the synchronization is implemented it should also release 
+            // the locks on the padInts used by this thread.
+
             return true;
         }
     }
