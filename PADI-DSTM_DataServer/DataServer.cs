@@ -124,7 +124,7 @@ namespace PADI_DSTM_DataServer
 
         public bool Commit(int tid)
         {
-            //
+            // implement
             return false;
         }
     }

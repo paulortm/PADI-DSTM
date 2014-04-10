@@ -76,17 +76,41 @@ namespace PADI_DSTM_Library
 
         public static bool TxCommit()
         {
+            // two phase commit
+
+            // voting
             Transaction currentTransaction = PADI_DSTM.currentTransactionHolder.get();
-            bool canCommit = true;
             foreach (String serverUrl in currentTransaction.getServers())
             {
-                IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), Constants.MASTER_SERVER_URL);
+                IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
                 if (!dataServer.canCommit(currentTransaction.getId()))
                 {
-                    canCommit = false;
-                    break;
+                    // abort all transactions and return false
+                    foreach (String serverUrl2 in currentTransaction.getServers())
+                    {
+                        dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl2);
+                        dataServer.Abort(currentTransaction.getId());
+                    }
+                    return false;
                 }
             }
+
+            // commit
+            foreach (String serverUrl in currentTransaction.getServers())
+            {
+                IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
+                if (!dataServer.Commit(currentTransaction.getId()))
+                {
+                    // one of the data servers didn't acknolaged the commit
+                    foreach (String serverUrl2 in currentTransaction.getServers())
+                    {
+                        dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl2);
+                        dataServer.Abort(currentTransaction.getId());
+                    }
+                    return false;
+                }
+            }
+
             return true;
         }
     }
