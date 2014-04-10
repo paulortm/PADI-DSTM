@@ -113,19 +113,19 @@ namespace PADI_DSTM_DataServer
         public bool Abort(int tid)
         {
             // implement
-            return false;
+            return true;
         }
 
         public bool canCommit(int tid)
         {
             // implement
-            return false;
+            return true;
         }
 
         public bool Commit(int tid)
         {
             // implement
-            return false;
+            return true;
         }
     }
 }

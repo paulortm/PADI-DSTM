@@ -26,23 +26,25 @@ namespace PADI_DSTM_CommonLib
 
         public int Read()
         {
-            if (this.currentTransactionHolder == null)
+            if (this.currentTransactionHolder.get() == null)
             {
-
+                throw new OutOfTransactionException();
             }
 
             IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), dataServerUrl);
+            this.currentTransactionHolder.get().addServer(this.dataServerUrl);
             return server.Read(this.currentTransactionHolder.get().getId(), this.uid);
         }
 
         public void Write(int value)
         {
-            if (this.currentTransactionHolder == null)
+            if (this.currentTransactionHolder.get() == null)
             {
-
+                throw new OutOfTransactionException();
             }
 
             IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), dataServerUrl);
+            this.currentTransactionHolder.get().addServer(this.dataServerUrl);
             server.Write(this.currentTransactionHolder.get().getId(), this.uid, value);
         }
     }

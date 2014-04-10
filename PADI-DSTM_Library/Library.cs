@@ -76,6 +76,11 @@ namespace PADI_DSTM_Library
 
         public static bool TxCommit()
         {
+            if (PADI_DSTM.currentTransactionHolder.get() == null)
+            {
+                throw new OutOfTransactionException();
+            }
+
             // two phase commit
 
             // voting

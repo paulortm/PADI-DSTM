@@ -12,17 +12,24 @@ namespace PADI_DSTM_Client
     {
         static void Main(string[] args)
         {
-            Console.ReadLine();
             PADI_DSTM.Init();
 
             try
             {
                 PadInt p = PADI_DSTM.CreatePadInt(0);
-                PadInt p1 = PADI_DSTM.AccessPadInt(2);
+                PADI_DSTM.TxBegin();
+                p.Write(5);
+                PADI_DSTM.TxCommit();
+                Console.ReadLine();
             }
             catch (ServerException e)
             {
                 Console.WriteLine(e.Message);
+                PadInt p = PADI_DSTM.AccessPadInt(0);
+                PADI_DSTM.TxBegin();
+                Console.WriteLine(p.Read());
+                PADI_DSTM.TxCommit();
+                Console.ReadLine();
             }
         }
     }

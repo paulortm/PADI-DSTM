@@ -31,7 +31,7 @@ namespace PADI_DSTM_Master
         // <data server id, number of padints>
         private Dictionary<int, int> numberOfPadInts = new Dictionary<int, int>();
 
-        // <PadInt uid, servers url>
+        // <PadInt uid, servers>
         private Dictionary<int, List<int>> locationOfPadInts = new Dictionary<int, List<int>>();
 
         private int dataServerId = 0;
@@ -115,6 +115,9 @@ namespace PADI_DSTM_Master
             PadInt padInt = server.createPadInt(uid);
             // update info on master
             numberOfPadInts[serverId]++;
+            List<int> servers = new List<int>();
+            servers.Add(serverId);
+            this.locationOfPadInts.Add(uid, servers);
 
             Console.WriteLine("Delegated PadInt to " + dataServers[serverId]);
             return padInt;

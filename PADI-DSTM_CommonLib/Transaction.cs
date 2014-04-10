@@ -69,4 +69,13 @@ namespace PADI_DSTM_CommonLib
             // empty
         }
     }
+
+    public class OutOfTransactionException : TxException
+    {
+        public OutOfTransactionException()
+            : base("You have to be inside a transaction to read or write a PadInt.")
+        {
+            // empty
+        }
+    }
 }
