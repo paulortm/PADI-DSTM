@@ -39,6 +39,10 @@ namespace PADI_DSTM_DataServer
     {
         private Dictionary<int, int?> padints = new Dictionary<int, int?>();
 
+        // Provisory stage of the PadInt's before a commit
+        // <tid, <uid, padint value>>
+        private Dictionary<int, Dictionary<int, int>> uncommitedChanges = new Dictionary<int, Dictionary<int, int>>();
+
         private bool doFail = false;
         private bool doFreeze = false;
 
