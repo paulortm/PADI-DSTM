@@ -15,6 +15,8 @@ namespace PADI_DSTM_CommonLib
         // returns the server id.
         int registerDataServer(string url);
 
+        bool Status();
+
         PadInt createPadIntOnDataServer(int uid);
 
         PadInt accessPadIntOnDataServer(int uid);
@@ -41,6 +43,8 @@ namespace PADI_DSTM_CommonLib
         bool Freeze();
 
         bool Recover();
+
+        bool Status();
 
         // tid - transaction id
         bool Abort(int tid);

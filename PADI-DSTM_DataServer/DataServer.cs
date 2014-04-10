@@ -184,6 +184,49 @@ namespace PADI_DSTM_DataServer
             }
         }
 
+        public bool Status()
+        {
+            Console.WriteLine("");
+            Console.WriteLine("------- DUMPING DATASERVER STATUS --------");
+            Console.WriteLine("");
+
+            Console.WriteLine("Number of PadInts: " + padints.Count());
+
+            foreach (KeyValuePair<int, int?> entry in padints)
+            {
+                Console.WriteLine("PadInt " + entry.Key + " value: " + entry.Value);
+            }
+
+            Console.WriteLine("");
+            Console.WriteLine("Dumping Uncommited Transactions:");
+
+            int currentTxId = -1;
+            foreach (KeyValuePair<int, Dictionary<int, int>> entry in uncommitedChanges)
+            {
+                Dictionary<int, int> uncommitedPadInts = entry.Value;
+
+                foreach (KeyValuePair<int, int> entry2 in uncommitedPadInts)
+                {
+                    if (currentTxId != entry.Key)
+                    {
+                        currentTxId = entry.Key;
+                        Console.Write("TxId: " + entry.Key + "\t --> PadInt<id,value> = " + "<" + entry2.Key + "," + entry2.Value + ">\n");
+                    }
+                    else
+                    {
+                        Console.Write("      \t --> PadInt<id,value> = " + "<" + entry2.Key + "," + entry2.Value + ">\n");
+                    }
+
+                }
+
+
+            }
+
+
+
+            return true;
+        }
+
         public bool Abort(int tid)
         {
             if(!this.uncommitedChanges.ContainsKey(tid))

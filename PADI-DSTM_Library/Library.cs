@@ -63,6 +63,11 @@ namespace PADI_DSTM_Library
             return server.Recover();
         }
 
+        public static bool Status()
+        {
+            return master.Status();
+        }
+
         public static bool TxBegin()
         {
             Transaction t = PADI_DSTM.master.createTransaction();

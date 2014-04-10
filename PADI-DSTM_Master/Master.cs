@@ -34,12 +34,36 @@ namespace PADI_DSTM_Master
         // <PadInt uid, servers>
         private Dictionary<int, List<int>> locationOfPadInts = new Dictionary<int, List<int>>();
 
-        private int dataServerId = 0;
+        private int dataServerId = 0; // Data Server ids goes from 0 to n servers - 1
         private int transactionId = 0;
 
         public void check()
         {
             Console.WriteLine("Checked!!!!!!!!!!!!!!!!!!!!!!");
+        }
+
+        public bool Status()
+        {
+            Console.WriteLine("");
+            Console.WriteLine("-------- DUMPING MASTER SERVER STATUS --------");
+            Console.WriteLine("MasterServer url:      " + Constants.MASTER_SERVER_URL);
+            Console.WriteLine("Number of DataServers: " + dataServerId);
+
+            Console.WriteLine("");
+
+            for(int i = 0; i < dataServerId; i++)
+            {
+                Console.WriteLine("DataServer " + i + " url:           " + dataServers[i]);
+                Console.WriteLine("DataServer " + i + " total PadInts: " + numberOfPadInts[i]);
+            }
+
+            foreach (KeyValuePair<int, String> entry in dataServers)
+            {
+                IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), entry.Value);
+                server.Status();
+            }
+
+            return true;
         }
 
         // maybe needs to be synched
