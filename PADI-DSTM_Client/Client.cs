@@ -94,7 +94,7 @@ namespace PADI_DSTM_Client
 
         public static void Main()
         {
-            test2();
+            test1();
 
             Console.ReadLine();
         }
