@@ -45,7 +45,7 @@ namespace PADI_DSTM_DataServer
         private Dictionary<int, Dictionary<int, int>> uncommitedChanges = new Dictionary<int, Dictionary<int, int>>();
 
         // <uid, tid>
-        private Dictionary<int, Int32> lockedPadints = new Dictionary<int, Int32>();
+        private Dictionary<int, Mutex> lockedPadints = new Dictionary<int, Mutex>();
 
         private Mutex mutex = new Mutex();
 
@@ -59,17 +59,17 @@ namespace PADI_DSTM_DataServer
 
             // If the padint is being used then lockedPadints should contain an entry for it.
             // On that case only try to enter if the transaction isn't the one that is using the padint.
-            if (lockedPadints.ContainsKey(uid) && lockedPadints[uid] != tid)
+            if (lockedPadints.ContainsKey(uid) /*&& lockedPadints[uid] != tid*/)
             {
                 this.mutex.ReleaseMutex();
-                Monitor.Enter(lockedPadints[uid]);
+                lockedPadints[uid].WaitOne();
                 return;
             }
             else if (!lockedPadints.ContainsKey(uid))
             {
                 // the padint isn't being used
-                lockedPadints.Add(uid, tid);
-                Monitor.Enter(lockedPadints[uid]);
+                lockedPadints.Add(uid, new Mutex());
+                lockedPadints[uid].WaitOne();
                 this.mutex.ReleaseMutex();
                 return;
             }
@@ -84,7 +84,7 @@ namespace PADI_DSTM_DataServer
                 throw new UnlockingUnlookedPadIntException(uid, tid, DataServerApp.dataServerUrl);
             }
 
-            Monitor.Exit(this.lockedPadints[uid]);
+            this.lockedPadints[uid].ReleaseMutex();
             this.lockedPadints.Remove(uid);
         }
 
