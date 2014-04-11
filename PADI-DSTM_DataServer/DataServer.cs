@@ -6,6 +6,7 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -43,8 +44,49 @@ namespace PADI_DSTM_DataServer
         // <tid, <uid, padint value>>
         private Dictionary<int, Dictionary<int, int>> uncommitedChanges = new Dictionary<int, Dictionary<int, int>>();
 
+        // <uid, tid>
+        private Dictionary<int, Int32> lockedPadints = new Dictionary<int, Int32>();
+
+        private Mutex mutex = new Mutex();
+
         private bool doFail = false;
         private bool doFreeze = false;
+
+        // if the padint is used by a transaction then lock the thread
+        private void lockPadInt(int uid, int tid)
+        {
+            this.mutex.WaitOne();
+
+            // If the padint is being used then lockedPadints should contain an entry for it.
+            // On that case only try to enter if the transaction isn't the one that is using the padint.
+            if (lockedPadints.ContainsKey(uid) && lockedPadints[uid] != tid)
+            {
+                this.mutex.ReleaseMutex();
+                Monitor.Enter(lockedPadints[uid]);
+                return;
+            }
+            else if (!lockedPadints.ContainsKey(uid))
+            {
+                // the padint isn't being used
+                lockedPadints.Add(uid, tid);
+                Monitor.Enter(lockedPadints[uid]);
+                this.mutex.ReleaseMutex();
+                return;
+            }
+
+            this.mutex.ReleaseMutex();
+        }
+
+        private void unlockPadInt(int uid, int tid)
+        {
+            if (!this.lockedPadints.ContainsKey(uid))
+            {
+                throw new UnlockingUnlookedPadIntException(uid, tid, DataServerApp.dataServerUrl);
+            }
+
+            Monitor.Exit(this.lockedPadints[uid]);
+            this.lockedPadints.Remove(uid);
+        }
 
         public PadInt createPadInt(int uid)
         {
@@ -62,7 +104,8 @@ namespace PADI_DSTM_DataServer
 
         public int Read(int tid, int uid)
         {
-            checkFailOrFreeze();
+            this.checkFailOrFreeze();
+            this.lockPadInt(uid, tid);
 
             if (!padints.ContainsKey(uid))
             {
@@ -104,6 +147,7 @@ namespace PADI_DSTM_DataServer
         public void Write(int tid, int uid, int value)
         {
             checkFailOrFreeze();
+            this.lockPadInt(uid, tid);
 
             if (!padints.ContainsKey(uid))
             {
@@ -255,9 +299,11 @@ namespace PADI_DSTM_DataServer
                 int uid = padintValue.Key;
                 int value = padintValue.Value;
                 this.padints[uid] = value;
+                this.unlockPadInt(uid, tid);
             }
 
             this.uncommitedChanges.Remove(tid);
+
             // When the synchronization is implemented it should also release 
             // the locks on the padInts used by this thread.
 
