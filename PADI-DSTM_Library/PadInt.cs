@@ -1,10 +1,11 @@
-﻿using System;
+﻿using PADI_DSTM_CommonLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PADI_DSTM_CommonLib
+namespace PADI_DSTM
 {
     [Serializable]
     public class PadInt

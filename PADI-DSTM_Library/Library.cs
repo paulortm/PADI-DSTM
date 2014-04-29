@@ -7,9 +7,9 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PADI_DSTM_Library
+namespace PADI_DSTM
 {
-    public class PADI_DSTM
+    public class PadiDstm
     {
         private static IMaster master;
         private static CurrentTransactionHolder currentTransactionHolder = new CurrentTransactionHolder();
@@ -22,22 +22,22 @@ namespace PADI_DSTM_Library
             TcpChannel channel = new TcpChannel(port);
             ChannelServices.RegisterChannel(channel, true);
 
-            PADI_DSTM.master = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
-            PADI_DSTM.master.check();
+            PadiDstm.master = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
+            PadiDstm.master.check();
             return true;
         }
 
         public static PadInt CreatePadInt(int uid)
         {
 
-            PadInt padint = PADI_DSTM.master.createPadIntOnDataServer(uid);
+            PadInt padint = PadiDstm.master.createPadIntOnDataServer(uid);
             padint.setTransactionHolder(currentTransactionHolder);
             return padint;
         }
 
         public static PadInt AccessPadInt(int uid)
         {
-            PadInt padint = PADI_DSTM.master.accessPadIntOnDataServer(uid);
+            PadInt padint = PadiDstm.master.accessPadIntOnDataServer(uid);
             padint.setTransactionHolder(currentTransactionHolder);
             return padint;
         }
@@ -70,25 +70,25 @@ namespace PADI_DSTM_Library
 
         public static bool TxBegin()
         {
-            Transaction t = PADI_DSTM.master.createTransaction();
-            PADI_DSTM.currentTransactionHolder.set(t);
+            Transaction t = PadiDstm.master.createTransaction();
+            PadiDstm.currentTransactionHolder.set(t);
             return true;
         }
 
         public static bool TxAbort() {
-            Transaction currentTransaction = PADI_DSTM.currentTransactionHolder.get();
+            Transaction currentTransaction = PadiDstm.currentTransactionHolder.get();
             foreach (String serverUrl in currentTransaction.getServers())
             {
                 IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
                 dataServer.Abort(currentTransaction.getId());
             }
-            PADI_DSTM.currentTransactionHolder.set(null);
+            PadiDstm.currentTransactionHolder.set(null);
             return true;
         }
 
         public static bool TxCommit()
         {
-            if (PADI_DSTM.currentTransactionHolder.get() == null)
+            if (PadiDstm.currentTransactionHolder.get() == null)
             {
                 throw new OutOfTransactionException();
             }
@@ -96,8 +96,8 @@ namespace PADI_DSTM_Library
             // two phase commit
 
             // voting
-            Transaction currentTransaction = PADI_DSTM.currentTransactionHolder.get();
-            PADI_DSTM.currentTransactionHolder.set(null);
+            Transaction currentTransaction = PadiDstm.currentTransactionHolder.get();
+            PadiDstm.currentTransactionHolder.set(null);
             foreach (String serverUrl in currentTransaction.getServers())
             {
                 IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);

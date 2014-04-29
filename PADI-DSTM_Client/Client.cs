@@ -1,5 +1,5 @@
 ﻿using PADI_DSTM_CommonLib;
-using PADI_DSTM_Library;
+using PADI_DSTM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,48 +14,48 @@ namespace PADI_DSTM_Client
 
         static void test1()
         {
-            PADI_DSTM.Init();
+            PadiDstm.Init();
 
             try
             {
                 for (int i = 0; i < 20; i++)
                 {
-                    PADI_DSTM.CreatePadInt(i);
+                    PadiDstm.CreatePadInt(i);
                 }
 
-                PadInt p1 = PADI_DSTM.AccessPadInt(0);
-                PadInt p2 = PADI_DSTM.AccessPadInt(3);
-                PadInt p3 = PADI_DSTM.AccessPadInt(8);
-                PadInt p4 = PADI_DSTM.AccessPadInt(15);
+                PadInt p1 = PadiDstm.AccessPadInt(0);
+                PadInt p2 = PadiDstm.AccessPadInt(3);
+                PadInt p3 = PadiDstm.AccessPadInt(8);
+                PadInt p4 = PadiDstm.AccessPadInt(15);
 
-                PADI_DSTM.TxBegin();
+                PadiDstm.TxBegin();
                 p1.Write(5);
                 p2.Write(6);
                 p3.Write(7);
                 p4.Write(8);
-                PADI_DSTM.TxCommit();
+                PadiDstm.TxCommit();
 
-                PADI_DSTM.TxBegin();
+                PadiDstm.TxBegin();
                 p1.Write(1);
                 p2.Write(2);
                 p3.Write(3);
                 p4.Write(4);
-                PADI_DSTM.TxAbort();
+                PadiDstm.TxAbort();
             }
             catch (ServerException e)
             {
                 Console.WriteLine(e.Message);
 
-                PadInt p1 = PADI_DSTM.AccessPadInt(0);
-                PadInt p2 = PADI_DSTM.AccessPadInt(3);
-                PadInt p3 = PADI_DSTM.AccessPadInt(8);
-                PadInt p4 = PADI_DSTM.AccessPadInt(15);
-                PADI_DSTM.TxBegin();
+                PadInt p1 = PadiDstm.AccessPadInt(0);
+                PadInt p2 = PadiDstm.AccessPadInt(3);
+                PadInt p3 = PadiDstm.AccessPadInt(8);
+                PadInt p4 = PadiDstm.AccessPadInt(15);
+                PadiDstm.TxBegin();
                 Console.WriteLine(p1.Read());
                 Console.WriteLine(p2.Read());
                 Console.WriteLine(p3.Read());
                 Console.WriteLine(p4.Read());
-                PADI_DSTM.TxCommit();
+                PadiDstm.TxCommit();
             }
         }
 
@@ -63,27 +63,27 @@ namespace PADI_DSTM_Client
         {
             try
             {
-                PADI_DSTM.Init();
+                PadiDstm.Init();
 
                 for (int i = 0; i < 20; i++)
                 {
-                    PADI_DSTM.CreatePadInt(i);
+                    PadiDstm.CreatePadInt(i);
                 }
 
-                PadInt p1 = PADI_DSTM.AccessPadInt(0);
-                PadInt p2 = PADI_DSTM.AccessPadInt(3);
-                PadInt p3 = PADI_DSTM.AccessPadInt(8);
-                PadInt p4 = PADI_DSTM.AccessPadInt(15);
+                PadInt p1 = PadiDstm.AccessPadInt(0);
+                PadInt p2 = PadiDstm.AccessPadInt(3);
+                PadInt p3 = PadiDstm.AccessPadInt(8);
+                PadInt p4 = PadiDstm.AccessPadInt(15);
 
-                PADI_DSTM.TxBegin();
+                PadiDstm.TxBegin();
                 p1.Write(5);
                 p2.Write(6);
                 p3.Write(7);
                 p4.Write(8);
-                PADI_DSTM.Status();
-                PADI_DSTM.TxCommit();
+                PadiDstm.Status();
+                PadiDstm.TxCommit();
                 
-                PADI_DSTM.Status();
+                PadiDstm.Status();
             }
             catch (ServerException e)
             {

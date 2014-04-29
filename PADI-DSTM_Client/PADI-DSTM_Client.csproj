@@ -48,10 +48,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PADI-DSTM_CommonLib\PADI-DSTM_CommonLib.csproj">
-      <Project>{140d3748-f43c-45b9-97d7-5315fd2333f7}</Project>
-      <Name>PADI-DSTM_CommonLib</Name>
-    </ProjectReference>
     <ProjectReference Include="..\PADI-DSTM_Library\PADI-DSTM_Library.csproj">
       <Project>{0ac9deaa-ba54-4750-8881-f44f3139ec50}</Project>
       <Name>PADI-DSTM_Library</Name>
