@@ -41,12 +41,15 @@ namespace PADI_DSTM_DataServer
     {
         private Dictionary<int, int?> padints = new Dictionary<int, int?>();
 
+        // <uid, tid>
+        private Dictionary<int, int> lockedPadints = new Dictionary<int,int>();
+
+        // <uid, pending transactions> 
+        private Dictionary<int, LinkedList<Thread>> pendingTransactions = new Dictionary<int, LinkedList<Thread>>();
+
         // Provisory stage of the PadInt's before a commit
         // <tid, <uid, padint value>>
         private Dictionary<int, Dictionary<int, int>> uncommitedChanges = new Dictionary<int, Dictionary<int, int>>();
-
-        // <uid, tid>
-        private Dictionary<int, Int32> lockedPadints = new Dictionary<int, Int32>();
 
         private Mutex mutex = new Mutex();
 
@@ -58,35 +61,34 @@ namespace PADI_DSTM_DataServer
         {
             this.mutex.WaitOne();
 
-            // If the padint is being used then lockedPadints should contain an entry for it.
-            // On that case only try to enter if the transaction isn't the one that is using the padint.
+            // verify if the padint is locked
             if (lockedPadints.ContainsKey(uid) && lockedPadints[uid] != tid)
             {
+                // lock the thread
+                pendingTransactions[uid].AddLast(Thread.CurrentThread);
                 this.mutex.ReleaseMutex();
-                Monitor.Enter(lockedPadints[uid]);
-                return;
-            }
-            else if (!lockedPadints.ContainsKey(uid))
-            {
-                // the padint isn't being used
-                lockedPadints.Add(uid, tid);
-                Monitor.Enter(lockedPadints[uid]);
-                this.mutex.ReleaseMutex();
-                return;
+                while (true)
+                    Thread.Sleep(1000);
             }
 
             this.mutex.ReleaseMutex();
+
+            lockedPadints.Add(uid, tid);
+            if (!pendingTransactions.ContainsKey(uid))
+                pendingTransactions.Add(uid, new LinkedList<Thread>());
+
+            
         }
 
         private void unlockPadInt(int uid, int tid)
         {
-            if (!this.lockedPadints.ContainsKey(uid))
+            if (pendingTransactions[uid].Count() > 0)
             {
-                throw new UnlockingUnlookedPadIntException(uid, tid, DataServerApp.dataServerUrl);
+                Thread nextThread = pendingTransactions[uid].First.Value;
+                pendingTransactions[uid].RemoveFirst();
+                nextThread.Resume();
             }
-
-            Monitor.Exit(this.lockedPadints[uid]);
-            this.lockedPadints.Remove(uid);
+            lockedPadints.Remove(uid);
         }
 
         public PadInt createPadInt(int uid)
@@ -102,6 +104,32 @@ namespace PADI_DSTM_DataServer
             
             return new PadInt(uid, DataServerApp.dataServerUrl);
         }
+
+        private void aquireLockOnPadInt(int tid, int uid)
+        {
+            // verify if the padint is locked
+            if (lockedPadints.ContainsKey(uid) && lockedPadints[uid] != tid) {
+                // lock the thread
+                pendingTransactions[uid].AddLast(Thread.CurrentThread);
+                while (true)
+                    Thread.Sleep(1000);
+            }
+
+            lockedPadints.Add(uid, tid);
+            if (!pendingTransactions.ContainsKey(uid))
+                pendingTransactions.Add(uid, new LinkedList<Thread>());
+
+        }
+
+        private void releaseLockOnPadInt(int tid, int uid) {
+            if (pendingTransactions[uid].Count() > 0)
+            {
+                Thread nextThread = pendingTransactions[uid].First.Value;
+                pendingTransactions[uid].RemoveFirst();
+                nextThread.Resume();
+            }
+            lockedPadints.Remove(uid);
+       }
 
         public int Read(int tid, int uid)
         {
@@ -276,8 +304,10 @@ namespace PADI_DSTM_DataServer
             }
 
             this.uncommitedChanges.Remove(tid);
-            // When the synchronization is implemented it should also release 
-            // the locks on the padInts used by this thread.
+            foreach (var uidValue in uncommitedChanges[tid])
+            {
+                this.unlockPadInt(tid, uidValue.Key);
+            }
             return true;
         }
 
