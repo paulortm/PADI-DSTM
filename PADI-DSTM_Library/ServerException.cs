@@ -67,27 +67,6 @@ namespace PADI_DSTM_CommonLib
     }
 
     [Serializable]
-    public class NullPadIntException : ServerException
-    {
-        public NullPadIntException(int uid)
-            : base("The PadInt with uid " + uid + "is null")
-        {
-            //empty
-        }
-
-        public NullPadIntException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
-            : base(info, context)
-        {
-            //empty
-	    }
-
-        public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
-        {
-            base.GetObjectData(info, context);
-        }
-    }
-
-    [Serializable]
     public class InexistentPadIntException : ServerException
     {
         public InexistentPadIntException(int uid)

@@ -37,64 +37,53 @@ namespace PADI_DSTM_DataServer
         }
     }
 
+    internal class DSPadint
+    {
+        private int value;
+        private int timestamp;
+
+        public DSPadint(int value, int timestamp)
+        {
+            this.value = value;
+            this.timestamp = timestamp;
+        }
+
+        public int Value
+        {
+            set { this.value = value; }
+            get { return this.value; }
+        }
+
+        public int Timestamp
+        {
+            set { this.timestamp = value; }
+            get { return this.timestamp; }
+        }
+    }
+
     public class DataServer : MarshalByRefObject, IDataServer
     {
-        private Dictionary<int, int?> padints = new Dictionary<int, int?>();
+        private int timestampCounter = 0;
+
+        // <uid, padint>
+        private Dictionary<int, DSPadint> padints = new Dictionary<int, DSPadint>();
 
         // Provisory stage of the PadInt's before a commit
-        // <tid, <uid, padint value>>
-        private Dictionary<int, Dictionary<int, int>> uncommitedChanges = new Dictionary<int, Dictionary<int, int>>();
+        // <tid, <uid, padint>>
+        private Dictionary<int, Dictionary<int, DSPadint>> uncommitedChanges = new Dictionary<int, Dictionary<int, DSPadint>>();
 
-        // <uid, tid>
-        private Dictionary<int, Int32> lockedPadints = new Dictionary<int, Int32>();
 
         private Mutex mutex = new Mutex();
 
         private bool doFail = false;
         private bool doFreeze = false;
 
-        // if the padint is used by a transaction then lock the thread
-        private void lockPadInt(int uid, int tid)
-        {
-            this.mutex.WaitOne();
-
-            // If the padint is being used then lockedPadints should contain an entry for it.
-            // On that case only try to enter if the transaction isn't the one that is using the padint.
-            if (lockedPadints.ContainsKey(uid) && lockedPadints[uid] != tid)
-            {
-                this.mutex.ReleaseMutex();
-                Monitor.Enter(lockedPadints[uid]);
-                return;
-            }
-            else if (!lockedPadints.ContainsKey(uid))
-            {
-                // the padint isn't being used
-                lockedPadints.Add(uid, tid);
-                Monitor.Enter(lockedPadints[uid]);
-                this.mutex.ReleaseMutex();
-                return;
-            }
-
-            this.mutex.ReleaseMutex();
-        }
-
-        private void unlockPadInt(int uid, int tid)
-        {
-            if (!this.lockedPadints.ContainsKey(uid))
-            {
-                throw new UnlockingUnlookedPadIntException(uid, tid, DataServerApp.dataServerUrl);
-            }
-
-            Monitor.Exit(this.lockedPadints[uid]);
-            this.lockedPadints.Remove(uid);
-        }
-
         public PadInt createPadInt(int uid)
         {
             checkFailOrFreeze();
 
             try {
-                padints.Add(uid, null);
+                padints.Add(uid, new DSPadint(0, timestampCounter++));
                 Console.WriteLine("PadInt created: " + uid);
             } catch (ArgumentException) {
                 throw new InvalidPadIntIdException(uid);
@@ -106,7 +95,6 @@ namespace PADI_DSTM_DataServer
         public int Read(int tid, int uid)
         {
             this.checkFailOrFreeze();
-            this.lockPadInt(uid, tid);
 
             if (!padints.ContainsKey(uid))
             {
@@ -117,38 +105,35 @@ namespace PADI_DSTM_DataServer
             {
                 if (this.uncommitedChanges[tid].ContainsKey(uid))
                 {
-                    return this.uncommitedChanges[tid][uid];
+                    return this.uncommitedChanges[tid][uid].Value;
                 }
                 else
                 {
-                    int? value = padints[uid];
-                    if (value == null)
-                        throw new NullPadIntException(uid);
+                    /**********************************************************/
+                    DSPadint padint = new DSPadint(padints[uid].Value, padints[uid].Timestamp);
 
-                    this.uncommitedChanges[tid].Add(uid, (int)value);
+                    this.uncommitedChanges[tid].Add(uid, padint);
 
-                    return (int)value;
+                    return padint.Value;
                 }
             }
             else
             {
-                int? value = padints[uid];
-                if (value == null)
-                    throw new NullPadIntException(uid);
+                /**********************************************************/
+                DSPadint padint = new DSPadint(padints[uid].Value, padints[uid].Timestamp);
 
-                Dictionary<int, int> changedPadInts = new Dictionary<int, int>();
-                changedPadInts.Add(uid, (int)value);
+                Dictionary<int, DSPadint> changedPadInts = new Dictionary<int, DSPadint>();
+                changedPadInts.Add(uid, padint);
 
                 this.uncommitedChanges.Add(tid, changedPadInts);
 
-                return (int)value;
+                return padint.Value;
             }        
         }
 
         public void Write(int tid, int uid, int value)
         {
             checkFailOrFreeze();
-            this.lockPadInt(uid, tid);
 
             if (!padints.ContainsKey(uid))
             {
@@ -159,17 +144,21 @@ namespace PADI_DSTM_DataServer
             {
                 if (this.uncommitedChanges[tid].ContainsKey(uid))
                 {
-                    this.uncommitedChanges[tid][uid] = value;
+                    this.uncommitedChanges[tid][uid].Value = value;
                 }
                 else
                 {
-                    this.uncommitedChanges[tid].Add(uid, value);
+                    /*******************************************/
+                    int timestamp = padints[uid].Timestamp;
+                    this.uncommitedChanges[tid].Add(uid, new DSPadint(value, timestamp));
                 }
             }
             else
             {
-                Dictionary<int, int> changedPadInts = new Dictionary<int,int>();
-                changedPadInts.Add(uid, value);
+                /*******************************************/
+                int timestamp = padints[uid].Timestamp;
+                Dictionary<int, DSPadint> changedPadInts = new Dictionary<int,DSPadint>();
+                changedPadInts.Add(uid, new DSPadint(value, timestamp));
 
                 this.uncommitedChanges.Add(tid, changedPadInts);
             }
@@ -233,29 +222,29 @@ namespace PADI_DSTM_DataServer
 
             Console.WriteLine("Number of PadInts: " + padints.Count());
 
-            foreach (KeyValuePair<int, int?> entry in padints)
+            foreach (KeyValuePair<int, DSPadint> entry in padints)
             {
-                Console.WriteLine("PadInt " + entry.Key + " value: " + entry.Value);
+                Console.WriteLine("PadInt " + entry.Key + " value: " + entry.Value.Value);
             }
 
             Console.WriteLine("");
             Console.WriteLine("Dumping Uncommited Transactions:");
 
             int currentTxId = -1;
-            foreach (KeyValuePair<int, Dictionary<int, int>> entry in uncommitedChanges)
+            foreach (KeyValuePair<int, Dictionary<int, DSPadint>> entry in uncommitedChanges)
             {
-                Dictionary<int, int> uncommitedPadInts = entry.Value;
+                Dictionary<int, DSPadint> uncommitedPadInts = entry.Value;
 
-                foreach (KeyValuePair<int, int> entry2 in uncommitedPadInts)
+                foreach (KeyValuePair<int, DSPadint> entry2 in uncommitedPadInts)
                 {
                     if (currentTxId != entry.Key)
                     {
                         currentTxId = entry.Key;
-                        Console.Write("TxId: " + entry.Key + "\t --> PadInt<id,value> = " + "<" + entry2.Key + "," + entry2.Value + ">\n");
+                        Console.Write("TxId: " + entry.Key + "\t --> PadInt<id,value> = " + "<" + entry2.Key + "," + entry2.Value.Value + ">\n");
                     }
                     else
                     {
-                        Console.Write("      \t --> PadInt<id,value> = " + "<" + entry2.Key + "," + entry2.Value + ">\n");
+                        Console.Write("      \t --> PadInt<id,value> = " + "<" + entry2.Key + "," + entry2.Value.Value + ">\n");
                     }
 
                 }
@@ -283,7 +272,16 @@ namespace PADI_DSTM_DataServer
 
         public bool canCommit(int tid)
         {
-            // used only to check if this server is running
+            Dictionary<int, DSPadint> transactionValues = this.uncommitedChanges[tid];
+            foreach (KeyValuePair<int, DSPadint> padintValue in transactionValues)
+            {
+                if (padints[padintValue.Key].Timestamp > padintValue.Value.Value)
+                {
+                    Abort(tid);
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -295,12 +293,12 @@ namespace PADI_DSTM_DataServer
             }
 
             // save the values on the padints dictionary
-            Dictionary<int, int> transactionValues = this.uncommitedChanges[tid];
-            foreach(KeyValuePair<int, int> padintValue in transactionValues) {
+            Dictionary<int, DSPadint> transactionValues = this.uncommitedChanges[tid];
+            foreach (KeyValuePair<int, DSPadint> padintValue in transactionValues)
+            {
                 int uid = padintValue.Key;
-                int value = padintValue.Value;
-                this.padints[uid] = value;
-                this.unlockPadInt(uid, tid);
+                int value = padintValue.Value.Value;
+                this.padints[uid].Value = value;
             }
 
             this.uncommitedChanges.Remove(tid);
