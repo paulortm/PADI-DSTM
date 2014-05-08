@@ -1,6 +1,7 @@
 ﻿using PADI_DSTM;
 using PADI_DSTM_CommonLib;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting;
@@ -71,6 +72,9 @@ namespace PADI_DSTM_DataServer
         // Provisory stage of the PadInt's before a commit
         // <tid, <uid, padint>>
         private Dictionary<int, Dictionary<int, DSPadint>> uncommitedChanges = new Dictionary<int, Dictionary<int, DSPadint>>();
+
+
+        private LinkedList<int> padintsBeingCommited = new LinkedList<int>();
 
 
         private Mutex mutex = new Mutex();
@@ -272,12 +276,29 @@ namespace PADI_DSTM_DataServer
 
         public bool canCommit(int tid)
         {
+            lock(this.padintsBeingCommited) {
+
+                foreach (KeyValuePair<int, DSPadint> entry in this.uncommitedChanges[tid])
+                {
+                    int uid = entry.Key;
+                    if (this.padintsBeingCommited.Contains(uid))
+                    {
+                        return false;
+                    }
+                }
+
+                foreach (KeyValuePair<int, DSPadint> entry in this.uncommitedChanges[tid])
+                {
+                    int uid = entry.Key;
+                    this.padintsBeingCommited.AddLast(tid);
+                }
+            }
+            
             Dictionary<int, DSPadint> transactionValues = this.uncommitedChanges[tid];
             foreach (KeyValuePair<int, DSPadint> padintValue in transactionValues)
             {
-                if (padints[padintValue.Key].Timestamp > padintValue.Value.Value)
+                if (padints[padintValue.Key].Timestamp > padintValue.Value.Timestamp)
                 {
-                    Abort(tid);
                     return false;
                 }
             }
@@ -303,8 +324,14 @@ namespace PADI_DSTM_DataServer
 
             this.uncommitedChanges.Remove(tid);
 
-            // When the synchronization is implemented it should also release 
-            // the locks on the padInts used by this thread.
+            lock (this.padintsBeingCommited)
+            {
+                foreach (KeyValuePair<int, DSPadint> entry in this.uncommitedChanges[tid])
+                {
+                    int uid = entry.Key;
+                    this.padintsBeingCommited.Remove(uid);
+                }
+            }
 
             return true;
         }
