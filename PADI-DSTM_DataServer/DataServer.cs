@@ -138,7 +138,7 @@ namespace PADI_DSTM_DataServer
         public void Write(int tid, int uid, int value)
         {
             checkFailOrFreeze();
-
+            this.Status();
             if (!padints.ContainsKey(uid))
             {
                 throw new InexistentPadIntException(uid);
@@ -290,7 +290,7 @@ namespace PADI_DSTM_DataServer
                 foreach (KeyValuePair<int, DSPadint> entry in this.uncommitedChanges[tid])
                 {
                     int uid = entry.Key;
-                    this.padintsBeingCommited.AddLast(tid);
+                    this.padintsBeingCommited.AddLast(uid);
                 }
             }
             
@@ -320,18 +320,12 @@ namespace PADI_DSTM_DataServer
                 int uid = padintValue.Key;
                 int value = padintValue.Value.Value;
                 this.padints[uid].Value = value;
+                this.padints[uid].Timestamp = timestampCounter++;
+
+                this.padintsBeingCommited.Remove(uid);
             }
 
             this.uncommitedChanges.Remove(tid);
-
-            lock (this.padintsBeingCommited)
-            {
-                foreach (KeyValuePair<int, DSPadint> entry in this.uncommitedChanges[tid])
-                {
-                    int uid = entry.Key;
-                    this.padintsBeingCommited.Remove(uid);
-                }
-            }
 
             return true;
         }

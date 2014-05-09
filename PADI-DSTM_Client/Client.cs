@@ -92,9 +92,60 @@ namespace PADI_DSTM_Client
 
         }
 
+        private static void test3()
+        {
+            PadiDstm.Init();
+
+            PadInt p1;
+            PadInt p2;
+            PadInt p3;
+            PadInt p4;
+            
+            try
+            {
+                for (int i = 0; i < 20; i++)
+                {
+                    PadiDstm.CreatePadInt(i);
+                }
+
+
+                p1 = PadiDstm.AccessPadInt(0);
+                p2 = PadiDstm.AccessPadInt(3);
+                p3 = PadiDstm.AccessPadInt(8);
+                p4 = PadiDstm.AccessPadInt(15);
+
+                PadiDstm.TxBegin();
+                p1.Write(2);
+                Console.ReadLine();
+                Console.WriteLine(PadiDstm.TxCommit());
+
+            }
+            catch (ServerException e)
+            {
+
+                p1 = PadiDstm.AccessPadInt(0);
+                p2 = PadiDstm.AccessPadInt(3);
+                p3 = PadiDstm.AccessPadInt(8);
+                p4 = PadiDstm.AccessPadInt(15);
+
+                PadiDstm.TxBegin();
+                p1.Write(3);
+                Console.ReadLine();
+                Console.WriteLine(PadiDstm.TxCommit());
+            }
+
+            PadiDstm.TxBegin();
+            Console.WriteLine(p1.Read());
+            Console.ReadLine();
+            PadiDstm.TxCommit();
+        }
+
+
+            
+
         public static void Main()
         {
-            test1();
+            test3();
 
             Console.ReadLine();
         }
