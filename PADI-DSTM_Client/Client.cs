@@ -154,7 +154,7 @@ namespace PADI_DSTM_Client
 
         public static void Main()
         {
-            testEmptyCommit();
+            test1();
 
             Console.ReadLine();
         }

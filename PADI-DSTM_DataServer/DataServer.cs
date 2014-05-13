@@ -65,6 +65,7 @@ namespace PADI_DSTM_DataServer
     public class DataServer : MarshalByRefObject, IDataServer
     {
         private int timestampCounter = 0;
+        private IMaster masterServer = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
 
         // <uid, padint>
         private Dictionary<int, DSPadint> padints = new Dictionary<int, DSPadint>();
@@ -87,7 +88,7 @@ namespace PADI_DSTM_DataServer
             checkFailOrFreeze();
 
             try {
-                padints.Add(uid, new DSPadint(0, timestampCounter++));
+                padints.Add(uid, new DSPadint(0, masterServer.generateTimestamp()));
                 Console.WriteLine("PadInt created: " + uid);
             } catch (ArgumentException) {
                 throw new InvalidPadIntIdException(uid);
@@ -145,7 +146,7 @@ namespace PADI_DSTM_DataServer
         public void Write(int tid, int uid, int value)
         {
             checkFailOrFreeze();
-            this.Status();
+
             if (!padints.ContainsKey(uid))
             {
                 throw new InexistentPadIntException(uid);
@@ -233,7 +234,7 @@ namespace PADI_DSTM_DataServer
 
             foreach (KeyValuePair<int, DSPadint> entry in padints)
             {
-                Console.WriteLine("PadInt " + entry.Key + " value: " + entry.Value.Value);
+                Console.WriteLine("PadInt<id, value, timestamp> = " + "<" + entry.Key + ", " + entry.Value.Value + ", " + entry.Value.Timestamp + ">");
             }
 
             Console.WriteLine("");
@@ -249,11 +250,11 @@ namespace PADI_DSTM_DataServer
                     if (currentTxId != entry.Key)
                     {
                         currentTxId = entry.Key;
-                        Console.Write("TxId: " + entry.Key + "\t --> PadInt<id,value> = " + "<" + entry2.Key + "," + entry2.Value.Value + ">\n");
+                        Console.Write("TxId: " + entry.Key + "\t --> PadInt<id, value, timestamp> = " + "<" + entry2.Key + "," + entry2.Value.Value + entry2.Value.Timestamp + ">\n");
                     }
                     else
                     {
-                        Console.Write("      \t --> PadInt<id,value> = " + "<" + entry2.Key + "," + entry2.Value.Value + ">\n");
+                        Console.Write("      \t --> PadInt<id, value, timestamp> = " + "<" + entry2.Key + "," + entry2.Value.Value + entry2.Value.Timestamp + ">\n");
                     }
 
                 }
@@ -327,7 +328,7 @@ namespace PADI_DSTM_DataServer
                 lock (this.padints[uid])
                 {
                     this.padints[uid].Value = value;
-                    this.padints[uid].Timestamp = timestampCounter++;
+                    this.padints[uid].Timestamp = masterServer.generateTimestamp();
                 }
 
                 this.padintsBeingCommited.Remove(uid);

@@ -10,7 +10,7 @@ namespace PADI_DSTM_CommonLib
 
     public interface IMaster
     {
-        void check();
+        int generateTimestamp();
 
         // Registers the 'server' on the system.
         // returns the server id.

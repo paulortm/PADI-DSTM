@@ -26,6 +26,7 @@ namespace PADI_DSTM_Master
 
     class MasterServer : MarshalByRefObject, IMaster
     {
+        int timestampCounter = 0;
         // <data server id, data server url>
         private Dictionary<int, String> dataServers = new Dictionary<int, String>();
 
@@ -38,9 +39,9 @@ namespace PADI_DSTM_Master
         private int dataServerId = 0; // Data Server ids goes from 0 to n servers - 1
         private int transactionId = 0;
 
-        public void check()
+        public int generateTimestamp()
         {
-            Console.WriteLine("Checked!!!!!!!!!!!!!!!!!!!!!!");
+            return timestampCounter++;
         }
 
         public bool Status()

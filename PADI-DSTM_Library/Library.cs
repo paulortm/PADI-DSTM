@@ -24,7 +24,6 @@ namespace PADI_DSTM
             ChannelServices.RegisterChannel(channel, true);
 
             PadiDstm.master = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
-            PadiDstm.master.check();
 
             PadiDstm.inited = true;
 
