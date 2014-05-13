@@ -140,12 +140,19 @@ namespace PADI_DSTM_Client
             PadiDstm.TxCommit();
         }
 
+        private static void testEmptyCommit()
+        {
+            PadiDstm.Init();
+            PadiDstm.TxBegin();
+            Console.WriteLine(PadiDstm.TxCommit());
+        }
+
 
             
 
         public static void Main()
         {
-            test3();
+            testEmptyCommit();
 
             Console.ReadLine();
         }

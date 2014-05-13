@@ -81,4 +81,13 @@ namespace PADI_DSTM_CommonLib
             // empty
         }
     }
+
+    public class UninitedLibException : TxException
+    {
+        public UninitedLibException()
+            : base("Must call PadiDstm.Init() before calling any other method.")
+        {
+            // empty
+        }
+    }
 }

@@ -13,6 +13,7 @@ namespace PADI_DSTM
     {
         private static IMaster master;
         private static CurrentTransactionHolder currentTransactionHolder = new CurrentTransactionHolder();
+        private static bool inited = false;
 
         public static bool Init()
         {
@@ -24,12 +25,14 @@ namespace PADI_DSTM
 
             PadiDstm.master = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
             PadiDstm.master.check();
+
+            PadiDstm.inited = true;
+
             return true;
         }
 
         public static PadInt CreatePadInt(int uid)
         {
-
             PadInt padint = PadiDstm.master.createPadIntOnDataServer(uid);
             padint.setTransactionHolder(currentTransactionHolder);
             return padint;
@@ -70,6 +73,10 @@ namespace PADI_DSTM
 
         public static bool TxBegin()
         {
+            if (!PadiDstm.inited)
+            {
+                throw new UninitedLibException();
+            }
             Transaction t = PadiDstm.master.createTransaction();
             PadiDstm.currentTransactionHolder.set(t);
             return true;
@@ -98,34 +105,39 @@ namespace PADI_DSTM
             // voting
             Transaction currentTransaction = PadiDstm.currentTransactionHolder.get();
             PadiDstm.currentTransactionHolder.set(null);
-            foreach (String serverUrl in currentTransaction.getServers())
-            {
-                IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
-                if (!dataServer.canCommit(currentTransaction.getId()))
-                {
-                    // abort all transactions and return false
-                    foreach (String serverUrl2 in currentTransaction.getServers())
-                    {
-                        dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl2);
-                        dataServer.Abort(currentTransaction.getId());
-                    }
-                    return false;
-                }
-            }
 
-            // commit
-            foreach (String serverUrl in currentTransaction.getServers())
+            // verify if there was any write or read during the transaction
+            if (currentTransaction.getServers() != null)
             {
-                IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
-                if (!dataServer.Commit(currentTransaction.getId()))
+                foreach (String serverUrl in currentTransaction.getServers())
                 {
-                    // one of the data servers didn't acknolaged the commit
-                    foreach (String serverUrl2 in currentTransaction.getServers())
+                    IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
+                    if (!dataServer.canCommit(currentTransaction.getId()))
                     {
-                        dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl2);
-                        dataServer.Abort(currentTransaction.getId());
+                        // abort all transactions and return false
+                        foreach (String serverUrl2 in currentTransaction.getServers())
+                        {
+                            dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl2);
+                            dataServer.Abort(currentTransaction.getId());
+                        }
+                        return false;
                     }
-                    return false;
+                }
+
+                // commit
+                foreach (String serverUrl in currentTransaction.getServers())
+                {
+                    IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
+                    if (!dataServer.Commit(currentTransaction.getId()))
+                    {
+                        // one of the data servers didn't acknolaged the commit
+                        foreach (String serverUrl2 in currentTransaction.getServers())
+                        {
+                            dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl2);
+                            dataServer.Abort(currentTransaction.getId());
+                        }
+                        return false;
+                    }
                 }
             }
 
