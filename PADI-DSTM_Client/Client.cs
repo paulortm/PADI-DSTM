@@ -143,7 +143,9 @@ namespace PADI_DSTM_Client
         private static void testEmptyCommit()
         {
             PadiDstm.Init();
+            PadInt p = PadiDstm.CreatePadInt(0);
             PadiDstm.TxBegin();
+            Console.WriteLine(p.Read());
             Console.WriteLine(PadiDstm.TxCommit());
         }
 

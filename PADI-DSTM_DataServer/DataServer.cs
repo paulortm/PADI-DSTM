@@ -113,8 +113,11 @@ namespace PADI_DSTM_DataServer
                 }
                 else
                 {
-                    /**********************************************************/
-                    DSPadint padint = new DSPadint(padints[uid].Value, padints[uid].Timestamp);
+                    DSPadint padint = null;
+                    lock (padints[uid])
+                    {
+                        padint = new DSPadint(padints[uid].Value, padints[uid].Timestamp);
+                    }
 
                     this.uncommitedChanges[tid].Add(uid, padint);
 
@@ -123,8 +126,12 @@ namespace PADI_DSTM_DataServer
             }
             else
             {
-                /**********************************************************/
-                DSPadint padint = new DSPadint(padints[uid].Value, padints[uid].Timestamp);
+                DSPadint padint = null;
+                lock (padints[uid])
+                {
+                    padint = new DSPadint(padints[uid].Value, padints[uid].Timestamp);
+                }
+
 
                 Dictionary<int, DSPadint> changedPadInts = new Dictionary<int, DSPadint>();
                 changedPadInts.Add(uid, padint);
@@ -152,14 +159,12 @@ namespace PADI_DSTM_DataServer
                 }
                 else
                 {
-                    /*******************************************/
                     int timestamp = padints[uid].Timestamp;
                     this.uncommitedChanges[tid].Add(uid, new DSPadint(value, timestamp));
                 }
             }
             else
             {
-                /*******************************************/
                 int timestamp = padints[uid].Timestamp;
                 Dictionary<int, DSPadint> changedPadInts = new Dictionary<int,DSPadint>();
                 changedPadInts.Add(uid, new DSPadint(value, timestamp));
@@ -319,8 +324,11 @@ namespace PADI_DSTM_DataServer
             {
                 int uid = padintValue.Key;
                 int value = padintValue.Value.Value;
-                this.padints[uid].Value = value;
-                this.padints[uid].Timestamp = timestampCounter++;
+                lock (this.padints[uid])
+                {
+                    this.padints[uid].Value = value;
+                    this.padints[uid].Timestamp = timestampCounter++;
+                }
 
                 this.padintsBeingCommited.Remove(uid);
             }
