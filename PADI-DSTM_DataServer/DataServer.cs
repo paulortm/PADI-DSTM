@@ -10,6 +10,7 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 
 
 
@@ -18,6 +19,7 @@ namespace PADI_DSTM_DataServer
     class DataServerApp
     {
         internal static string dataServerUrl;
+        internal static IMaster masterServer = null;
 
         static void Main(string[] args)
         {
@@ -30,8 +32,7 @@ namespace PADI_DSTM_DataServer
             ChannelServices.RegisterChannel(channelServ, true);
             RemotingConfiguration.RegisterWellKnownServiceType(typeof(DataServer), Constants.REMOTE_DATASERV_OBJ_NAME, WellKnownObjectMode.Singleton);
 
-            IMaster master = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
-            master.registerDataServer(dataServerUrl);
+            DataServerApp.masterServer = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
 
             Console.WriteLine("Press <enter> to exit");
             Console.ReadLine();
@@ -64,8 +65,10 @@ namespace PADI_DSTM_DataServer
 
     public class DataServer : MarshalByRefObject, IDataServer
     {
+        private int id;
         private int timestampCounter = 0;
         private IMaster masterServer = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
+       // private I
 
         // <uid, padint>
         private Dictionary<int, DSPadint> padints = new Dictionary<int, DSPadint>();
@@ -82,6 +85,30 @@ namespace PADI_DSTM_DataServer
 
         private bool doFail = false;
         private bool doFreeze = false;
+
+        private static System.Timers.Timer ImAliveTimer;
+
+        public DataServer() {
+            Console.WriteLine("apduiohf");
+            ImAliveTimer = new System.Timers.Timer(1000);
+
+            // Hook up the Elapsed event for the timer.
+            ImAliveTimer.Elapsed += new ElapsedEventHandler(sendImAlive);
+
+            // Set the Interval to 2 seconds (2000 milliseconds).
+            ImAliveTimer.Interval = 1000;
+            ImAliveTimer.Enabled = true;
+
+            this.masterServer = DataServerApp.masterServer;
+            this.id = this.masterServer.registerDataServer(DataServerApp.dataServerUrl);
+            Console.WriteLine("server {0}", this.id);
+        }
+
+        private void sendImAlive(object source, ElapsedEventArgs e)
+        {
+            Console.WriteLine("sending i'm alive");
+            masterServer.imAlive(this.id);
+        }
 
         public PadInt createPadInt(int uid)
         {

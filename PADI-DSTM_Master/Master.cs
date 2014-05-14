@@ -8,6 +8,7 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace PADI_DSTM_Master
 {
@@ -36,8 +37,46 @@ namespace PADI_DSTM_Master
         // <PadInt uid, servers>
         private Dictionary<int, List<int>> locationOfPadInts = new Dictionary<int, List<int>>();
 
+        // <server id, received?>: true if the i am alive was received from server id
+        private Dictionary<int,bool> alives = new Dictionary<int,bool>();
+
         private int dataServerId = 0; // Data Server ids goes from 0 to n servers - 1
         private int transactionId = 0;
+
+        private static System.Timers.Timer checkServersTimer;
+
+        public MasterServer() {
+            Console.WriteLine("asdfadfa");
+            checkServersTimer = new System.Timers.Timer(0);
+
+            // Hook up the Elapsed event for the timer.
+            checkServersTimer.Elapsed += new ElapsedEventHandler(checkDeadServers);
+
+            // Set the Interval to 2 seconds (2000 milliseconds).
+            checkServersTimer.Interval = 2000;
+            checkServersTimer.Enabled = true;
+        }
+
+
+        public void imAlive(int serverId)
+        {
+            Console.WriteLine("server {0} is alive", serverId);
+            alives[serverId] = true;
+        }
+
+        private void checkDeadServers(object source, ElapsedEventArgs e)
+        {
+            foreach(KeyValuePair<int,bool> server in alives) {
+                if(!server.Value) {
+                    recoverFromDeadServer(server.Key);
+                }
+                alives[server.Key] = false;
+            }
+        }
+
+        private void recoverFromDeadServer(int id) {
+            Console.WriteLine("Server with id = {0} is dead.", id);
+        }
 
         public int generateTimestamp()
         {
@@ -61,7 +100,7 @@ namespace PADI_DSTM_Master
 
             foreach (KeyValuePair<int, String> entry in dataServers)
             {
-                IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), entry.Value);
+                IDataServer server = getDataServerFromUrl(entry.Value);
                 server.Status();
             }
 
@@ -83,14 +122,21 @@ namespace PADI_DSTM_Master
         {
             dataServers.Add(id, url);
             numberOfPadInts.Add(id, 0);
+            alives[id] = true;
         }
 
         private IDataServer getDataServer(int id)
         {
             String url = dataServers[id];
-            IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), url);
+            IDataServer server = getDataServerFromUrl(url);
             return server;
         }
+
+        private IDataServer getDataServerFromUrl(String url)
+        {
+            return (IDataServer)Activator.GetObject(typeof(IDataServer), url);
+        }
+
 
         private String getDataServerUrl(int id)
         {

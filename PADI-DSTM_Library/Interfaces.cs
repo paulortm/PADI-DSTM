@@ -18,6 +18,9 @@ namespace PADI_DSTM_CommonLib
 
         bool Status();
 
+        // called by the data server
+        void imAlive(int serverid);
+
         PadInt createPadIntOnDataServer(int uid);
 
         PadInt accessPadIntOnDataServer(int uid);
