@@ -258,11 +258,11 @@ namespace PADI_DSTM_DataServer
                     if (currentTxId != entry.Key)
                     {
                         currentTxId = entry.Key;
-                        Console.Write("TxId: " + entry.Key + "\t --> PadInt<id, value, timestamp> = " + "<" + entry2.Key + "," + entry2.Value.Value + entry2.Value.Timestamp + ">\n");
+                        Console.Write("TxId: " + entry.Key + "\t --> PadInt<id, value, timestamp> = " + "<" + entry2.Key + "," + entry2.Value.Value + ", " + entry2.Value.Timestamp + ">\n");
                     }
                     else
                     {
-                        Console.Write("      \t --> PadInt<id, value, timestamp> = " + "<" + entry2.Key + "," + entry2.Value.Value + entry2.Value.Timestamp + ">\n");
+                        Console.Write("      \t --> PadInt<id, value, timestamp> = " + "<" + entry2.Key + "," + entry2.Value.Value + ", " + entry2.Value.Timestamp + ">\n");
                     }
 
                 }
@@ -311,7 +311,11 @@ namespace PADI_DSTM_DataServer
             Dictionary<int, DSPadint> transactionValues = this.uncommitedChanges[tid];
             foreach (KeyValuePair<int, DSPadint> padintValue in transactionValues)
             {
-                if (primaryPadints[padintValue.Key].Timestamp > padintValue.Value.Timestamp)
+                int storedValue     = primaryPadints[padintValue.Key].Value;
+                int uncommitedValue = padintValue.Value.Value;
+                int storedTimestamp     = primaryPadints[padintValue.Key].Timestamp;
+                int uncommitedTimestamp = padintValue.Value.Timestamp;
+                if (storedValue != uncommitedValue && storedTimestamp > uncommitedTimestamp)
                 {
                     return false;
                 }
@@ -332,11 +336,20 @@ namespace PADI_DSTM_DataServer
             foreach (KeyValuePair<int, DSPadint> padintValue in transactionValues)
             {
                 int uid = padintValue.Key;
-                int value = padintValue.Value.Value;
+
+                int uncommitedValue = padintValue.Value.Value;
                 lock (this.primaryPadints[uid])
                 {
-                    this.primaryPadints[uid].Value = value;
-                    this.primaryPadints[uid].Timestamp = masterServer.generateTimestamp();
+                    int storedValue = this.primaryPadints[uid].Value;
+
+                    // There is no need to update the timestamp if the uncommited value is the
+                    // equal to the value stored.
+                    if (storedValue != uncommitedValue)
+                    {
+                        this.primaryPadints[uid].Value = uncommitedValue;
+                        this.primaryPadints[uid].Timestamp = masterServer.generateTimestamp();
+                    }
+
                 }
 
                 this.padintsBeingCommited.Remove(uid);

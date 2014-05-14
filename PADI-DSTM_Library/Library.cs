@@ -74,7 +74,7 @@ namespace PADI_DSTM
         {
             if (!PadiDstm.inited)
             {
-                throw new UninitedLibException();
+                throw new NotInitializedLibException();
             }
             Transaction t = PadiDstm.master.createTransaction();
             PadiDstm.currentTransactionHolder.set(t);
