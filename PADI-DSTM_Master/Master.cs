@@ -136,7 +136,7 @@ namespace PADI_DSTM_Master
 
             dataServers.Remove(id);
 
-            if(dataServers.Count > 2)
+            if(dataServers.Count > 1)
             {
                 dataServers[(int)backupServerId].BackedupServerId = backedupServerId;
                 dataServers[(int)backedupServerId].BackupServerId = backupServerId;
@@ -170,12 +170,11 @@ namespace PADI_DSTM_Master
             IDataServer backupServer = getDataServerFromUrl(dataServers[(int)backupServerId].Url);
             IDataServer backedupServer = getDataServerFromUrl(dataServers[(int)backedupServerId].Url);
 
-            if(dataServers.Count > 2)
+            if(dataServers.Count > 1)
             {
                 backupServer.transferBackupTo(backedupServer);
                 backupServer.setBackupAsPrimary();
-
-                backedupServer.transferPrimarysTo(backupServer);
+                backedupServer.transferPrimarysTo(dataServers[(int)backupServerId].Url);
             }
             else
             {
@@ -258,12 +257,11 @@ namespace PADI_DSTM_Master
                 DataServerInfo firstServerInfo = getFirstDataServerInfo();
                 DataServerInfo newServerInfo = new DataServerInfo(id, url, firstServerInfo.Id, firstServerInfo.Id);
                 IDataServer firstServer = getDataServerFromUrl(firstServerInfo.Url);
-                IDataServer newServer = getDataServerFromUrl(url);
 
                 firstServerInfo.BackupServerId = id;
                 firstServerInfo.BackedupServerId = id;
 
-                firstServer.transferPrimarysTo(newServer);
+                firstServer.transferPrimarysTo(url);
 
                 dataServers.Add(id, newServerInfo);
             }
@@ -273,14 +271,13 @@ namespace PADI_DSTM_Master
                 DataServerInfo lastServerInfo = getLastDataServerInfo();
                 DataServerInfo newServerInfo = new DataServerInfo(id, url, lastServerInfo.Id, firstServerInfo.Id);
                 IDataServer firstServer = getDataServerFromUrl(firstServerInfo.Url);
-                IDataServer lastServer = getDataServerFromUrl(lastServerInfo.Url);
                 IDataServer newServer = getDataServerFromUrl(url);
 
                 firstServerInfo.BackupServerId = id;
                 lastServerInfo.BackedupServerId = id;
 
-                firstServer.transferPrimarysTo(newServer);
-                newServer.transferPrimarysTo(lastServer);
+                firstServer.transferPrimarysTo(url);
+                newServer.transferPrimarysTo(lastServerInfo.Url);
 
                 dataServers.Add(id, newServerInfo);
             }

@@ -61,9 +61,9 @@ namespace PADI_DSTM_CommonLib
 
         void transferBackupTo(IDataServer server);
 
-        void addBackupPadInts(Dictionary<int, DSPadint> padintsToAdd);
+        void addBackupPadInt(int uid, DSPadint padint);
 
-        void transferPrimarysTo(IDataServer server);
+        void transferPrimarysTo(String serverUrl);
 
         void setBackupAsPrimary();
     }

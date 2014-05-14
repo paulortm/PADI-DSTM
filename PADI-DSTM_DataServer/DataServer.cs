@@ -349,21 +349,27 @@ namespace PADI_DSTM_DataServer
 
         public void transferBackupTo(IDataServer server)
         {
-            server.addBackupPadInts(this.backupPadints);
-        }
-
-        public void addBackupPadInts(Dictionary<int, DSPadint> padintsToAdd)
-        {
-            foreach (KeyValuePair<int, DSPadint> padint in padintsToAdd)
+            foreach (KeyValuePair<int, DSPadint> padint in backupPadints)
             {
-                this.backupPadints.Add(padint.Key, padint.Value);
+                server.addBackupPadInt(padint.Key, padint.Value);
             }
         }
 
-        public void transferPrimarysTo(IDataServer server)
+        public void addBackupPadInt(int uid, DSPadint padint)
         {
-            server.addBackupPadInts(this.primaryPadints);
+            this.backupPadints.Add(uid, padint);
+        }
+
+        public void transferPrimarysTo(String serverUrl)
+        {
+            
+            IDataServer server =  getDataServerFromUrl(serverUrl);
+            foreach (KeyValuePair<int, DSPadint> padint in primaryPadints)
+            {
+                server.addBackupPadInt(padint.Key, padint.Value);
+            }
             this.backupServer = server;
+             
         }
 
         public void setBackupAsPrimary()
@@ -375,5 +381,12 @@ namespace PADI_DSTM_DataServer
 
             this.backupPadints.Clear();
         }
+
+        private IDataServer getDataServerFromUrl(String url)
+        {
+            Console.WriteLine(url);
+            return (IDataServer)Activator.GetObject(typeof(IDataServer), url);
+        }
+
     }
 }
