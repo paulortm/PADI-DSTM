@@ -18,7 +18,11 @@ namespace PADI_DSTM_Master
         {
             TcpChannel channelServ = new TcpChannel(Constants.MASTER_SERV_PORT);
             ChannelServices.RegisterChannel(channelServ, true);
-            RemotingConfiguration.RegisterWellKnownServiceType(typeof(MasterServer), Constants.REMOTE_MASTER_OBJ_NAME, WellKnownObjectMode.Singleton);
+            MarshalByRefObject master = new MasterServer();
+            RemotingServices.Marshal(
+                master, 
+                Constants.REMOTE_MASTER_OBJ_NAME, 
+                typeof(IMaster)            );
 
             Console.WriteLine("Press <enter> to exit");
             Console.ReadLine();
@@ -46,8 +50,7 @@ namespace PADI_DSTM_Master
         private static System.Timers.Timer checkServersTimer;
 
         public MasterServer() {
-            Console.WriteLine("asdfadfa");
-            checkServersTimer = new System.Timers.Timer(0);
+            checkServersTimer = new System.Timers.Timer(1);
 
             // Hook up the Elapsed event for the timer.
             checkServersTimer.Elapsed += new ElapsedEventHandler(checkDeadServers);

@@ -18,21 +18,22 @@ namespace PADI_DSTM_DataServer
 {
     class DataServerApp
     {
-        internal static string dataServerUrl;
-        internal static IMaster masterServer = null;
-
         static void Main(string[] args)
         {
             Console.Write("Choose port:");
             int port = Convert.ToInt32(Console.ReadLine());
 
-            dataServerUrl = "tcp://" + Util.getLocalIP() + ":" + port + "/" + Constants.REMOTE_DATASERV_OBJ_NAME;
+            string dataServerUrl = "tcp://" + Util.getLocalIP() + ":" + port + "/" + Constants.REMOTE_DATASERV_OBJ_NAME;
+            IMaster masterServer = null;
 
             TcpChannel channelServ = new TcpChannel(port);
             ChannelServices.RegisterChannel(channelServ, true);
-            RemotingConfiguration.RegisterWellKnownServiceType(typeof(DataServer), Constants.REMOTE_DATASERV_OBJ_NAME, WellKnownObjectMode.Singleton);
-
-            DataServerApp.masterServer = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
+            masterServer = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
+            MarshalByRefObject dataServer = new DataServer(masterServer, dataServerUrl);
+            RemotingServices.Marshal(
+                dataServer,
+                Constants.REMOTE_DATASERV_OBJ_NAME, 
+                typeof(IDataServer) );
 
             Console.WriteLine("Press <enter> to exit");
             Console.ReadLine();
@@ -66,9 +67,10 @@ namespace PADI_DSTM_DataServer
     public class DataServer : MarshalByRefObject, IDataServer
     {
         private int id;
+        private String serverUrl;
+        private IMaster masterServer = null;
+
         private int timestampCounter = 0;
-        private IMaster masterServer = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
-       // private I
 
         // <uid, padint>
         private Dictionary<int, DSPadint> padints = new Dictionary<int, DSPadint>();
@@ -88,8 +90,13 @@ namespace PADI_DSTM_DataServer
 
         private static System.Timers.Timer ImAliveTimer;
 
-        public DataServer() {
-            Console.WriteLine("apduiohf");
+        public DataServer(IMaster master, String serverUrl) {
+
+            this.serverUrl = serverUrl;
+            this.masterServer = master;
+            this.id = this.masterServer.registerDataServer(this.serverUrl);
+
+
             ImAliveTimer = new System.Timers.Timer(1000);
 
             // Hook up the Elapsed event for the timer.
@@ -98,9 +105,6 @@ namespace PADI_DSTM_DataServer
             // Set the Interval to 2 seconds (2000 milliseconds).
             ImAliveTimer.Interval = 1000;
             ImAliveTimer.Enabled = true;
-
-            this.masterServer = DataServerApp.masterServer;
-            this.id = this.masterServer.registerDataServer(DataServerApp.dataServerUrl);
             Console.WriteLine("server {0}", this.id);
         }
 
@@ -121,7 +125,7 @@ namespace PADI_DSTM_DataServer
                 throw new InvalidPadIntIdException(uid);
             }
             
-            return new PadInt(uid, DataServerApp.dataServerUrl);
+            return new PadInt(uid, this.serverUrl);
         }
 
         public int Read(int tid, int uid)
@@ -298,7 +302,7 @@ namespace PADI_DSTM_DataServer
         {
             if(!this.uncommitedChanges.ContainsKey(tid))
             {
-                throw new TransactionNotFoundException(tid, DataServerApp.dataServerUrl);
+                throw new TransactionNotFoundException(tid, this.serverUrl);
             }
 
             this.uncommitedChanges.Remove(tid);
@@ -343,7 +347,7 @@ namespace PADI_DSTM_DataServer
         {
             if (!this.uncommitedChanges.ContainsKey(tid))
             {
-                throw new TransactionNotFoundException(tid, DataServerApp.dataServerUrl);
+                throw new TransactionNotFoundException(tid, this.serverUrl);
             }
 
             // save the values on the padints dictionary
