@@ -63,7 +63,10 @@ namespace PADI_DSTM_CommonLib
             return this.currentTransaction;
         }
     }
+}
 
+namespace PADI_DSTM
+{
     [Serializable]
     public abstract class TxException : Exception
     {
