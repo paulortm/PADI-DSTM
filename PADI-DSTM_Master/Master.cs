@@ -80,7 +80,7 @@ namespace PADI_DSTM_Master
         private Dictionary<int, int> numberOfPadInts = new Dictionary<int, int>();
 
         // <PadInt uid, servers>
-        private Dictionary<int, List<int>> locationOfPadInts = new Dictionary<int, List<int>>();
+        private Dictionary<int, DataServerInfo> locationOfPadInts = new Dictionary<int, DataServerInfo>();
 
         // <server id, received?>: true if the i am alive was received from server id
         private Dictionary<int,bool> alives = new Dictionary<int,bool>();
@@ -119,7 +119,59 @@ namespace PADI_DSTM_Master
         }
 
         private void recoverFromDeadServer(int id) {
-            Console.WriteLine("Server with id = {0} is dead.", id);
+            Console.WriteLine("Server with id = {0} is dead. Performing recover.. Wait!", id);
+
+            // change pointers to DataServersInfo
+            int? backupServerId = dataServers[id].BackedupServerId;
+            int? backedupServerId = dataServers[id].BackedupServerId;
+
+            dataServers.Remove(id);
+
+            if (backupServerId != null)
+            {
+                dataServers[(int)backupServerId].BackedupServerId = backedupServerId;
+            }
+
+            if (backedupServerId != null)
+            {
+                dataServers[(int)backedupServerId].BackupServerId = backupServerId;
+            }
+
+            // change number of primary padints on backupServerId
+            int numberOfPadints = numberOfPadInts[id];
+
+            if (backupServerId != null)
+            {
+                numberOfPadInts[(int)backupServerId] += numberOfPadints;
+            }
+
+            // update new location of padints
+            foreach (KeyValuePair<int, DataServerInfo> info in locationOfPadInts)
+            {
+                if(info.Value.Id == id)
+                {
+                    DataServerInfo newDataServerInfo = dataServers[(int)backupServerId];
+
+                    locationOfPadInts[info.Key] = newDataServerInfo; // talvez nao funcione parque esta a actualizar dentro do foreach
+                }
+            }
+
+            // remove server from alives list
+            alives.Remove(id);
+
+
+            // make server update data
+            IDataServer backupServer = getDataServerFromUrl(dataServers[(int)backupServerId].Url);
+            IDataServer backedupServer = getDataServerFromUrl(dataServers[(int)backedupServerId].Url);
+
+            backupServer.transferBackupTo(backedupServer);
+            backupServer.setBackupAsPrimary();
+
+            backedupServer.transferPrimarysTo(backupServer);
+
+
+
+            Console.WriteLine("Recover Done!");
         }
 
         public int generateTimestamp()
