@@ -114,11 +114,17 @@ namespace PADI_DSTM_Master
             var keys = new List<int>(alives.Keys);
             foreach (int serverId in keys)
             {
-                if (!alives[serverId]) 
+                if (!alives[serverId])
                 {
+
+                    // remove dead server
+                    alives.Remove(serverId);
                     recoverFromDeadServer(serverId);
                 }
-                alives[serverId] = false;
+                else
+                {
+                    alives[serverId] = false;
+                }
             }
             // remove dead servers
             /*foreach (int serverId in deadServers)
@@ -163,14 +169,11 @@ namespace PADI_DSTM_Master
                 }
             }
 
-            // remove dead server
-            alives.Remove(id);
-
             // make server update data
             IDataServer backupServer = getDataServerFromUrl(dataServers[(int)backupServerId].Url);
             IDataServer backedupServer = getDataServerFromUrl(dataServers[(int)backedupServerId].Url);
 
-            if(dataServers.Count > 1)
+            if (dataServers.Count > 1)
             {
                 backupServer.transferBackupTo(backedupServer);
                 backupServer.setBackupAsPrimary();
