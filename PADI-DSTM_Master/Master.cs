@@ -214,9 +214,65 @@ namespace PADI_DSTM_Master
             return transactionId++;
         }
 
-        private void addDataServer(int id, DataServerInfo serverInfo)
+        private DataServerInfo getFirstDataServerInfo()
         {
-            dataServers.Add(id, serverInfo);
+            for (int i = 0; i < dataServerId; i++)
+            {
+                if (dataServers.ContainsKey(i))
+                    return dataServers[i];
+            }
+
+            return null;
+        }
+
+        private DataServerInfo getLastDataServerInfo()
+        {
+            for (int i = dataServerId - 1; i >= 0; i++)
+            {
+                if (dataServers.ContainsKey(i))
+                    return dataServers[i];
+            }
+
+            return null;
+        }
+
+        private void addDataServer(int id, String url)
+        {
+            if (dataServers.Count == 0)
+            {
+                dataServers.Add(id, new DataServerInfo(id, url, null, null));
+            }
+            else if (dataServers.Count == 1)
+            {
+                DataServerInfo firstServerInfo = getFirstDataServerInfo();
+                DataServerInfo newServerInfo = new DataServerInfo(id, url, firstServerInfo.Id, firstServerInfo.Id);
+                IDataServer firstServer = getDataServerFromUrl(firstServerInfo.Url);
+                IDataServer newServer = getDataServerFromUrl(url);
+
+                firstServerInfo.BackupServerId = id;
+                firstServerInfo.BackedupServerId = id;
+
+                firstServer.transferPrimarysTo(newServer);
+
+                dataServers.Add(id, newServerInfo);
+            }
+            else
+            {
+                DataServerInfo firstServerInfo = getFirstDataServerInfo();
+                DataServerInfo lastServerInfo = getLastDataServerInfo();
+                DataServerInfo newServerInfo = new DataServerInfo(id, url, lastServerInfo.Id, firstServerInfo.Id);
+                IDataServer firstServer = getDataServerFromUrl(firstServerInfo.Url);
+                IDataServer lastServer = getDataServerFromUrl(lastServerInfo.Url);
+                IDataServer newServer = getDataServerFromUrl(url);
+
+                firstServerInfo.BackupServerId = id;
+                lastServerInfo.BackedupServerId = id;
+
+                firstServer.transferPrimarysTo(newServer);
+                newServer.transferPrimarysTo(lastServer);
+
+                dataServers.Add(id, newServerInfo);
+            }
             numberOfPadInts.Add(id, 0);
             alives[id] = true;
         }
@@ -233,18 +289,11 @@ namespace PADI_DSTM_Master
             return (IDataServer)Activator.GetObject(typeof(IDataServer), url);
         }
 
-
-        private String getDataServerUrl(int id)
-        {
-            String url = dataServers[id].Url;
-            return url;
-        }
-
         // uid The uid of the PadInt
         // Returns the url of the dataserver where the PadInd is present
         private String getPrimaryDataServerUrl(int uid)
         {
-            return this.getDataServerUrl(locationOfPadInts[uid][0]);
+            return locationOfPadInts[uid].Url;
         }
 
         // Registers the 'server' on the system.
@@ -252,7 +301,7 @@ namespace PADI_DSTM_Master
         public int registerDataServer(String url)
         {
             int id = generateId();
-            addDataServer(id, new DataServerInfo(id, url, null, null));
+            addDataServer(id, url);
             Console.WriteLine("DataServer " + id + " registered at " + url);
             return id;
         }
@@ -283,9 +332,7 @@ namespace PADI_DSTM_Master
             PadInt padInt = server.createPadInt(uid);
             // update info on master
             numberOfPadInts[serverId]++;
-            List<int> servers = new List<int>();
-            servers.Add(serverId);
-            this.locationOfPadInts.Add(uid, servers);
+            this.locationOfPadInts.Add(uid, dataServers[uid]);
 
             Console.WriteLine("Delegated PadInt to " + dataServers[serverId]);
             return padInt;
