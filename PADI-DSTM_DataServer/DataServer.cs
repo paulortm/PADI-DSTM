@@ -70,8 +70,6 @@ namespace PADI_DSTM_DataServer
         private String serverUrl;
         private IMaster masterServer = null;
 
-        private int timestampCounter = 0;
-
         // <uid, padint>
         private Dictionary<int, DSPadint> padints = new Dictionary<int, DSPadint>();
 
@@ -97,13 +95,13 @@ namespace PADI_DSTM_DataServer
             this.id = this.masterServer.registerDataServer(this.serverUrl);
 
 
-            ImAliveTimer = new System.Timers.Timer(1000);
+            ImAliveTimer = new System.Timers.Timer(1);
 
             // Hook up the Elapsed event for the timer.
             ImAliveTimer.Elapsed += new ElapsedEventHandler(sendImAlive);
 
             // Set the Interval to 2 seconds (2000 milliseconds).
-            ImAliveTimer.Interval = 1000;
+            ImAliveTimer.Interval = Constants.HEARTBEAT_SEND_INTERVAL;
             ImAliveTimer.Enabled = true;
             Console.WriteLine("server {0}", this.id);
         }

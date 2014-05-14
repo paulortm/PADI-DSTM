@@ -56,7 +56,7 @@ namespace PADI_DSTM_Master
             checkServersTimer.Elapsed += new ElapsedEventHandler(checkDeadServers);
 
             // Set the Interval to 2 seconds (2000 milliseconds).
-            checkServersTimer.Interval = 2000;
+            checkServersTimer.Interval = Constants.HEARTBEAT_CHECK_INTERVAL;
             checkServersTimer.Enabled = true;
         }
 
