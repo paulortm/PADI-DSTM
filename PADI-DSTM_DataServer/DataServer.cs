@@ -363,6 +363,7 @@ namespace PADI_DSTM_DataServer
         public void transferPrimarysTo(IDataServer server)
         {
             server.addBackupPadInts(this.primaryPadints);
+            this.backupServer = server;
         }
 
         public void setBackupAsPrimary()
@@ -373,11 +374,6 @@ namespace PADI_DSTM_DataServer
             }
 
             this.backupPadints.Clear();
-        }
-
-        public void setBackup(IDataServer server)
-        {
-
         }
     }
 }

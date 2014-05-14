@@ -26,6 +26,7 @@ namespace PADI_DSTM_CommonLib
         }
     }
 
+    [Serializable]
     public class DSPadint
     {
         private int value;

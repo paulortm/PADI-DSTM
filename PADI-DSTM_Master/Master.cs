@@ -110,40 +110,47 @@ namespace PADI_DSTM_Master
 
         private void checkDeadServers(object source, ElapsedEventArgs e)
         {
-            foreach(KeyValuePair<int,bool> server in alives) {
-                if(!server.Value) {
-                    recoverFromDeadServer(server.Key);
+
+            var keys = new List<int>(alives.Keys);
+            foreach (int serverId in keys)
+            {
+                if (!alives[serverId]) 
+                {
+                    recoverFromDeadServer(serverId);
                 }
-                alives[server.Key] = false;
+                alives[serverId] = false;
             }
+            // remove dead servers
+            /*foreach (int serverId in deadServers)
+            {
+                alives.Remove(serverId);
+            }*/
         }
 
         private void recoverFromDeadServer(int id) {
             Console.WriteLine("Server with id = {0} is dead. Performing recover.. Wait!", id);
 
             // change pointers to DataServersInfo
-            int? backupServerId = dataServers[id].BackedupServerId;
+            int? backupServerId = dataServers[id].BackupServerId;
             int? backedupServerId = dataServers[id].BackedupServerId;
 
             dataServers.Remove(id);
 
-            if (backupServerId != null)
+            if(dataServers.Count > 2)
             {
                 dataServers[(int)backupServerId].BackedupServerId = backedupServerId;
-            }
-
-            if (backedupServerId != null)
-            {
                 dataServers[(int)backedupServerId].BackupServerId = backupServerId;
+            }
+            else
+            {
+                dataServers[(int)backupServerId].BackedupServerId = null;
+                dataServers[(int)backedupServerId].BackupServerId = null;
             }
 
             // change number of primary padints on backupServerId
             int numberOfPadints = numberOfPadInts[id];
 
-            if (backupServerId != null)
-            {
-                numberOfPadInts[(int)backupServerId] += numberOfPadints;
-            }
+            numberOfPadInts[(int)backupServerId] += numberOfPadints;            
 
             // update new location of padints
             foreach (KeyValuePair<int, DataServerInfo> info in locationOfPadInts)
@@ -156,20 +163,24 @@ namespace PADI_DSTM_Master
                 }
             }
 
-            // remove server from alives list
+            // remove dead server
             alives.Remove(id);
-
 
             // make server update data
             IDataServer backupServer = getDataServerFromUrl(dataServers[(int)backupServerId].Url);
             IDataServer backedupServer = getDataServerFromUrl(dataServers[(int)backedupServerId].Url);
 
-            backupServer.transferBackupTo(backedupServer);
-            backupServer.setBackupAsPrimary();
+            if(dataServers.Count > 2)
+            {
+                backupServer.transferBackupTo(backedupServer);
+                backupServer.setBackupAsPrimary();
 
-            backedupServer.transferPrimarysTo(backupServer);
-
-
+                backedupServer.transferPrimarysTo(backupServer);
+            }
+            else
+            {
+                backupServer.setBackupAsPrimary();
+            }
 
             Console.WriteLine("Recover Done!");
         }
@@ -303,6 +314,7 @@ namespace PADI_DSTM_Master
             int id = generateId();
             addDataServer(id, url);
             Console.WriteLine("DataServer " + id + " registered at " + url);
+            alives[id] = true;
             return id;
         }
 
@@ -332,7 +344,7 @@ namespace PADI_DSTM_Master
             PadInt padInt = server.createPadInt(uid);
             // update info on master
             numberOfPadInts[serverId]++;
-            this.locationOfPadInts.Add(uid, dataServers[uid]);
+            this.locationOfPadInts.Add(uid, dataServers[serverId]);
 
             Console.WriteLine("Delegated PadInt to " + dataServers[serverId]);
             return padInt;
