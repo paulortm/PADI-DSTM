@@ -58,5 +58,17 @@ namespace PADI_DSTM_CommonLib
 
         // tid - transaction id
         bool Commit(int tid);
+
+        void transferBackupTo(IDataServer server);
+
+        void addBackupPadInts(Dictionary<int, DSPadint> padintsToAdd);
+
+        void transferPrimarysTo(IDataServer server);
+
+        void addPrimaryPadInts(Dictionary<int, DSPadint> padintsToAdd);
+
+        void setBackupAsPrimary();
+
+        void setBackup(IDataServer server);
     }
 }

@@ -25,4 +25,28 @@ namespace PADI_DSTM_CommonLib
             return localIP;
         }
     }
+
+    public class DSPadint
+    {
+        private int value;
+        private int timestamp;
+
+        public DSPadint(int value, int timestamp)
+        {
+            this.value = value;
+            this.timestamp = timestamp;
+        }
+
+        public int Value
+        {
+            set { this.value = value; }
+            get { return this.value; }
+        }
+
+        public int Timestamp
+        {
+            set { this.timestamp = value; }
+            get { return this.timestamp; }
+        }
+    }
 }

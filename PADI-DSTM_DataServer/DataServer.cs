@@ -40,38 +40,17 @@ namespace PADI_DSTM_DataServer
         }
     }
 
-    internal class DSPadint
-    {
-        private int value;
-        private int timestamp;
-
-        public DSPadint(int value, int timestamp)
-        {
-            this.value = value;
-            this.timestamp = timestamp;
-        }
-
-        public int Value
-        {
-            set { this.value = value; }
-            get { return this.value; }
-        }
-
-        public int Timestamp
-        {
-            set { this.timestamp = value; }
-            get { return this.timestamp; }
-        }
-    }
-
     public class DataServer : MarshalByRefObject, IDataServer
     {
         private int id;
         private String serverUrl;
         private IMaster masterServer = null;
+        private IDataServer backupServer = null;
 
         // <uid, padint>
-        private Dictionary<int, DSPadint> padints = new Dictionary<int, DSPadint>();
+        private Dictionary<int, DSPadint> primaryPadints = new Dictionary<int, DSPadint>();
+        // <uid, padint>
+        private Dictionary<int, DSPadint> backupPadints = new Dictionary<int, DSPadint>();
 
         // Provisory stage of the PadInt's before a commit
         // <tid, <uid, padint>>
@@ -117,7 +96,7 @@ namespace PADI_DSTM_DataServer
             checkFailOrFreeze();
 
             try {
-                padints.Add(uid, new DSPadint(0, masterServer.generateTimestamp()));
+                primaryPadints.Add(uid, new DSPadint(0, masterServer.generateTimestamp()));
                 Console.WriteLine("PadInt created: " + uid);
             } catch (ArgumentException) {
                 throw new InvalidPadIntIdException(uid);
@@ -130,7 +109,7 @@ namespace PADI_DSTM_DataServer
         {
             this.checkFailOrFreeze();
 
-            if (!padints.ContainsKey(uid))
+            if (!primaryPadints.ContainsKey(uid))
             {
                 throw new InexistentPadIntException(uid);
             }
@@ -144,9 +123,9 @@ namespace PADI_DSTM_DataServer
                 else
                 {
                     DSPadint padint = null;
-                    lock (padints[uid])
+                    lock (primaryPadints[uid])
                     {
-                        padint = new DSPadint(padints[uid].Value, padints[uid].Timestamp);
+                        padint = new DSPadint(primaryPadints[uid].Value, primaryPadints[uid].Timestamp);
                     }
 
                     this.uncommitedChanges[tid].Add(uid, padint);
@@ -157,9 +136,9 @@ namespace PADI_DSTM_DataServer
             else
             {
                 DSPadint padint = null;
-                lock (padints[uid])
+                lock (primaryPadints[uid])
                 {
-                    padint = new DSPadint(padints[uid].Value, padints[uid].Timestamp);
+                    padint = new DSPadint(primaryPadints[uid].Value, primaryPadints[uid].Timestamp);
                 }
 
 
@@ -176,7 +155,7 @@ namespace PADI_DSTM_DataServer
         {
             checkFailOrFreeze();
 
-            if (!padints.ContainsKey(uid))
+            if (!primaryPadints.ContainsKey(uid))
             {
                 throw new InexistentPadIntException(uid);
             }
@@ -189,13 +168,13 @@ namespace PADI_DSTM_DataServer
                 }
                 else
                 {
-                    int timestamp = padints[uid].Timestamp;
+                    int timestamp = primaryPadints[uid].Timestamp;
                     this.uncommitedChanges[tid].Add(uid, new DSPadint(value, timestamp));
                 }
             }
             else
             {
-                int timestamp = padints[uid].Timestamp;
+                int timestamp = primaryPadints[uid].Timestamp;
                 Dictionary<int, DSPadint> changedPadInts = new Dictionary<int,DSPadint>();
                 changedPadInts.Add(uid, new DSPadint(value, timestamp));
 
@@ -259,9 +238,9 @@ namespace PADI_DSTM_DataServer
             Console.WriteLine("------- DUMPING DATASERVER STATUS --------");
             Console.WriteLine("");
 
-            Console.WriteLine("Number of PadInts: " + padints.Count());
+            Console.WriteLine("Number of PadInts: " + primaryPadints.Count());
 
-            foreach (KeyValuePair<int, DSPadint> entry in padints)
+            foreach (KeyValuePair<int, DSPadint> entry in primaryPadints)
             {
                 Console.WriteLine("PadInt<id, value, timestamp> = " + "<" + entry.Key + ", " + entry.Value.Value + ", " + entry.Value.Timestamp + ">");
             }
@@ -332,7 +311,7 @@ namespace PADI_DSTM_DataServer
             Dictionary<int, DSPadint> transactionValues = this.uncommitedChanges[tid];
             foreach (KeyValuePair<int, DSPadint> padintValue in transactionValues)
             {
-                if (padints[padintValue.Key].Timestamp > padintValue.Value.Timestamp)
+                if (primaryPadints[padintValue.Key].Timestamp > padintValue.Value.Timestamp)
                 {
                     return false;
                 }
@@ -354,10 +333,10 @@ namespace PADI_DSTM_DataServer
             {
                 int uid = padintValue.Key;
                 int value = padintValue.Value.Value;
-                lock (this.padints[uid])
+                lock (this.primaryPadints[uid])
                 {
-                    this.padints[uid].Value = value;
-                    this.padints[uid].Timestamp = masterServer.generateTimestamp();
+                    this.primaryPadints[uid].Value = value;
+                    this.primaryPadints[uid].Timestamp = masterServer.generateTimestamp();
                 }
 
                 this.padintsBeingCommited.Remove(uid);
@@ -366,6 +345,39 @@ namespace PADI_DSTM_DataServer
             this.uncommitedChanges.Remove(tid);
 
             return true;
+        }
+
+        public void transferBackupTo(IDataServer server)
+        {
+            server.addBackupPadInts(this.backupPadints);
+        }
+
+        public void addBackupPadInts(Dictionary<int, DSPadint> padintsToAdd)
+        {
+            foreach (KeyValuePair<int, DSPadint> padint in padintsToAdd)
+            {
+                this.backupPadints.Add(padint.Key, padint.Value);
+            }
+        }
+
+        public void transferPrimarysTo(IDataServer server)
+        {
+            server.addBackupPadInts(this.primaryPadints);
+        }
+
+        public void setBackupAsPrimary()
+        {
+            foreach (KeyValuePair<int, DSPadint> padint in this.backupPadints)
+            {
+                this.primaryPadints.Add(padint.Key, padint.Value);
+            }
+
+            this.backupPadints.Clear();
+        }
+
+        public void setBackup(IDataServer server)
+        {
+
         }
     }
 }

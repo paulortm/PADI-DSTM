@@ -22,10 +22,51 @@ namespace PADI_DSTM_Master
             RemotingServices.Marshal(
                 master, 
                 Constants.REMOTE_MASTER_OBJ_NAME, 
-                typeof(IMaster)            );
+                typeof(IMaster)
+            );
 
             Console.WriteLine("Press <enter> to exit");
             Console.ReadLine();
+        }
+    }
+
+    internal class DataServerInfo
+    {
+        private int id;
+        private String url;
+        private int? backupServerId;
+        private int? backedupServerId;
+
+        public DataServerInfo(int id, String url, int? backupServerId, int? backedupServerId)
+        {
+            this.id = id;
+            this.url = url;
+            this.backupServerId = backupServerId;
+            this.backedupServerId = backedupServerId;
+        }
+
+        public int Id
+        {
+            set { this.id = value; }
+            get { return this.id; }
+        }
+
+        public String Url
+        {
+            set { this.url = value; }
+            get { return this.url; }
+        }
+
+        public int? BackupServerId
+        {
+            set { this.backupServerId = value; }
+            get { return this.backupServerId; }
+        }
+
+        public int? BackedupServerId
+        {
+            set { this.backedupServerId = value; }
+            get { return this.backedupServerId; }
         }
     }
 
@@ -33,7 +74,7 @@ namespace PADI_DSTM_Master
     {
         int timestampCounter = 0;
         // <data server id, data server url>
-        private Dictionary<int, String> dataServers = new Dictionary<int, String>();
+        private Dictionary<int, DataServerInfo> dataServers = new Dictionary<int, DataServerInfo>();
 
         // <data server id, number of padints>
         private Dictionary<int, int> numberOfPadInts = new Dictionary<int, int>();
@@ -44,7 +85,7 @@ namespace PADI_DSTM_Master
         // <server id, received?>: true if the i am alive was received from server id
         private Dictionary<int,bool> alives = new Dictionary<int,bool>();
 
-        private int dataServerId = 0; // Data Server ids goes from 0 to n servers - 1
+        private int dataServerId = 0;
         private int transactionId = 0;
 
         private static System.Timers.Timer checkServersTimer;
@@ -101,9 +142,9 @@ namespace PADI_DSTM_Master
                 Console.WriteLine("DataServer " + i + " total PadInts: " + numberOfPadInts[i]);
             }
 
-            foreach (KeyValuePair<int, String> entry in dataServers)
+            foreach (KeyValuePair<int, DataServerInfo> entry in dataServers)
             {
-                IDataServer server = getDataServerFromUrl(entry.Value);
+                IDataServer server = getDataServerFromUrl(entry.Value.Url);
                 server.Status();
             }
 
@@ -121,16 +162,16 @@ namespace PADI_DSTM_Master
             return transactionId++;
         }
 
-        private void addDataServer(int id, String url)
+        private void addDataServer(int id, DataServerInfo serverInfo)
         {
-            dataServers.Add(id, url);
+            dataServers.Add(id, serverInfo);
             numberOfPadInts.Add(id, 0);
             alives[id] = true;
         }
 
         private IDataServer getDataServer(int id)
         {
-            String url = dataServers[id];
+            String url = dataServers[id].Url;
             IDataServer server = getDataServerFromUrl(url);
             return server;
         }
@@ -143,7 +184,7 @@ namespace PADI_DSTM_Master
 
         private String getDataServerUrl(int id)
         {
-            String url = dataServers[id];
+            String url = dataServers[id].Url;
             return url;
         }
 
@@ -159,7 +200,7 @@ namespace PADI_DSTM_Master
         public int registerDataServer(String url)
         {
             int id = generateId();
-            addDataServer(id, url);
+            addDataServer(id, new DataServerInfo(id, url, null, null));
             Console.WriteLine("DataServer " + id + " registered at " + url);
             return id;
         }
