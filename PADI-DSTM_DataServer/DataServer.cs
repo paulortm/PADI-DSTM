@@ -135,6 +135,8 @@ namespace PADI_DSTM_DataServer
 
                     this.uncommitedChanges[tid].Add(uid, padint);
 
+                    backupServer.backupRead(tid, uid, padint);
+
                     return padint.Value;
                 }
             }
@@ -151,6 +153,8 @@ namespace PADI_DSTM_DataServer
                 changedPadInts.Add(uid, padint);
 
                 this.uncommitedChanges.Add(tid, changedPadInts);
+
+                backupServer.backupRead(tid, uid, padint);
 
                 return padint.Value;
             }        
@@ -363,7 +367,7 @@ namespace PADI_DSTM_DataServer
                 }
             }
 
-            backupServer.backupUncommitedChanges(tid, transactionValues);
+            
 
             return true;
         }
@@ -461,19 +465,6 @@ namespace PADI_DSTM_DataServer
         }
 
 
-
-        public void backupUncommitedChanges(int tid, Dictionary<int, DSPadint> uncommitedChanges)
-        {
-            if (!backedUpUncommitedChanges.ContainsKey(tid))
-            {
-                backedUpUncommitedChanges.Add(tid, new Dictionary<int, DSPadint>());
-            }
-            foreach (KeyValuePair<int, DSPadint> padint in uncommitedChanges)
-            {
-                backedUpUncommitedChanges[tid].Add(padint.Key, padint.Value);
-            }
-        }
-
         public void commitBackedTransaction(int tid, Dictionary<int, DSPadint> updatedValues) {
             this.backedUpUncommitedChanges.Remove(tid);
             foreach (KeyValuePair<int, DSPadint> updatedValue in updatedValues)
@@ -483,6 +474,17 @@ namespace PADI_DSTM_DataServer
         }
 
 
+        public void backupRead(int tid, int uid, DSPadint padint)
+        {
+
+            if (!this.backedUpUncommitedChanges.ContainsKey(tid))
+            {
+                this.backedUpUncommitedChanges.Add(tid, new Dictionary<int, DSPadint>());
+            }
+
+            this.backedUpUncommitedChanges[tid][uid] = padint;
+
+        }
 
     }
 }

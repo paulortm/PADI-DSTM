@@ -69,8 +69,9 @@ namespace PADI_DSTM_CommonLib
 
         void setBackupServer(String serverUrl);
 
-        void backupUncommitedChanges(int tid, Dictionary<int, DSPadint> uncommitedChanges);
-
         void commitBackedTransaction(int tid, Dictionary<int, DSPadint> updatedValues);
+
+        void backupRead(int tid, int uid, DSPadint padint);
+
     }
 }
