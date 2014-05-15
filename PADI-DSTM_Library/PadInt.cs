@@ -42,7 +42,7 @@ namespace PADI_DSTM
             IDataServer server = null;
             this.currentTransactionHolder.get().addServer(this.dataServerUrl);
             int result = -1;
-            int i = 0; 
+            int i; 
             for (i = 0; i < MAX_RETRIES; i++)
             {
                 try
@@ -82,7 +82,34 @@ namespace PADI_DSTM
 
             IDataServer server = (IDataServer)Activator.GetObject(typeof(IDataServer), dataServerUrl);
             this.currentTransactionHolder.get().addServer(this.dataServerUrl);
-            server.Write(this.currentTransactionHolder.get().getId(), this.uid, value);
+            int i;
+            for (i = 0; i < MAX_RETRIES; i++)
+            {
+                try
+                {
+                    server = (IDataServer)Activator.GetObject(typeof(IDataServer), dataServerUrl);
+                    server.Write(this.currentTransactionHolder.get().getId(), this.uid, value);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    if (ex is SocketException || ex is IOException)
+                    {
+                        String oldDataServerUrl = this.dataServerUrl;
+                        this.dataServerUrl = this.master.getLocationOfPadInt(this.uid);
+                        this.currentTransactionHolder.get().changeServer(oldDataServerUrl, this.dataServerUrl);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+            if (i >= MAX_RETRIES)
+            {
+                // the maximum number of tries was reached
+                throw new ServerNotFoundException(this.uid);
+            }
         }
     }
 }
