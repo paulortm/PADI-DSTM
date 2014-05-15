@@ -71,7 +71,7 @@ namespace PADI_DSTM_CommonLib
 
         void commitBackedTransaction(int tid, Dictionary<int, DSPadint> updatedValues);
 
-        void backupRead(int tid, int uid, DSPadint padint);
+        void backupUncommitedPadint(int tid, int uid, DSPadint padint);
 
     }
 }

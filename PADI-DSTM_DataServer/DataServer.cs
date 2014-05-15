@@ -135,7 +135,7 @@ namespace PADI_DSTM_DataServer
 
                     this.uncommitedChanges[tid].Add(uid, padint);
 
-                    backupServer.backupRead(tid, uid, padint);
+                    backupServer.backupUncommitedPadint(tid, uid, padint);
 
                     return padint.Value;
                 }
@@ -154,7 +154,7 @@ namespace PADI_DSTM_DataServer
 
                 this.uncommitedChanges.Add(tid, changedPadInts);
 
-                backupServer.backupRead(tid, uid, padint);
+                backupServer.backupUncommitedPadint(tid, uid, padint);
 
                 return padint.Value;
             }        
@@ -189,6 +189,8 @@ namespace PADI_DSTM_DataServer
 
                 this.uncommitedChanges.Add(tid, changedPadInts);
             }
+
+            backupServer.backupUncommitedPadint(tid, uid, this.uncommitedChanges[tid][uid]);
         }
 
         public bool Fail()
@@ -474,7 +476,7 @@ namespace PADI_DSTM_DataServer
         }
 
 
-        public void backupRead(int tid, int uid, DSPadint padint)
+        public void backupUncommitedPadint(int tid, int uid, DSPadint padint)
         {
 
             if (!this.backedUpUncommitedChanges.ContainsKey(tid))
