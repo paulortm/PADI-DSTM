@@ -29,11 +29,12 @@ namespace PADI_DSTM_DataServer
             TcpChannel channelServ = new TcpChannel(port);
             ChannelServices.RegisterChannel(channelServ, true);
             masterServer = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
-            MarshalByRefObject dataServer = new DataServer(masterServer, dataServerUrl);
+            DataServer dataServer = new DataServer(masterServer, dataServerUrl);
             RemotingServices.Marshal(
                 dataServer,
                 Constants.REMOTE_DATASERV_OBJ_NAME, 
                 typeof(IDataServer) );
+            dataServer.setId(masterServer.registerDataServer(dataServerUrl));
 
             Console.WriteLine("Press <enter> to exit");
             Console.ReadLine();
@@ -71,7 +72,6 @@ namespace PADI_DSTM_DataServer
 
             this.serverUrl = serverUrl;
             this.masterServer = master;
-            this.id = this.masterServer.registerDataServer(this.serverUrl);
 
 
             ImAliveTimer = new System.Timers.Timer(1);
@@ -84,6 +84,8 @@ namespace PADI_DSTM_DataServer
             ImAliveTimer.Enabled = true;
             Console.WriteLine("server {0}", this.id);
         }
+
+        public void setId(int id) { this.id = id; }
 
         private void sendImAlive(object source, ElapsedEventArgs e)
         {
