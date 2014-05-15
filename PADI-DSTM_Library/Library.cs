@@ -92,6 +92,46 @@ namespace PADI_DSTM
             return true;
         }
 
+        public static bool CanCommit()
+        {
+            Transaction currentTransaction = PadiDstm.currentTransactionHolder.get();
+            foreach (String serverUrl in currentTransaction.getServers())
+            {
+                IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
+                if (!dataServer.canCommit(currentTransaction.getId()))
+                {
+                    // abort all transactions and return false
+                    foreach (String serverUrl2 in currentTransaction.getServers())
+                    {
+                        dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl2);
+                        dataServer.Abort(currentTransaction.getId());
+                    }
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static bool Commit()
+        {
+            Transaction currentTransaction = PadiDstm.currentTransactionHolder.get();
+            foreach (String serverUrl in currentTransaction.getServers())
+            {
+                IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
+                if (!dataServer.Commit(currentTransaction.getId()))
+                {
+                    // one of the data servers didn't acknolaged the commit
+                    foreach (String serverUrl2 in currentTransaction.getServers())
+                    {
+                        dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl2);
+                        dataServer.Abort(currentTransaction.getId());
+                    }
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public static bool TxCommit()
         {
             if (PadiDstm.currentTransactionHolder.get() == null)
@@ -103,43 +143,23 @@ namespace PADI_DSTM
 
             // voting
             Transaction currentTransaction = PadiDstm.currentTransactionHolder.get();
-            PadiDstm.currentTransactionHolder.set(null);
 
             // verify if there was any write or read during the transaction
             if (currentTransaction.getServers() != null)
             {
-                foreach (String serverUrl in currentTransaction.getServers())
+                if (!CanCommit())
                 {
-                    IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
-                    if (!dataServer.canCommit(currentTransaction.getId()))
-                    {
-                        // abort all transactions and return false
-                        foreach (String serverUrl2 in currentTransaction.getServers())
-                        {
-                            dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl2);
-                            dataServer.Abort(currentTransaction.getId());
-                        }
-                        return false;
-                    }
+                    return false;
                 }
 
-                // commit
-                foreach (String serverUrl in currentTransaction.getServers())
+                if (!Commit())
                 {
-                    IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
-                    if (!dataServer.Commit(currentTransaction.getId()))
-                    {
-                        // one of the data servers didn't acknolaged the commit
-                        foreach (String serverUrl2 in currentTransaction.getServers())
-                        {
-                            dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl2);
-                            dataServer.Abort(currentTransaction.getId());
-                        }
-                        return false;
-                    }
+                    return false;
                 }
             }
 
+
+            PadiDstm.currentTransactionHolder.set(null);
             return true;
         }
     }

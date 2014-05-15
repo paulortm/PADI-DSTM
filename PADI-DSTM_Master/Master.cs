@@ -159,13 +159,14 @@ namespace PADI_DSTM_Master
             numberOfPadInts[(int)backupServerId] += numberOfPadints;            
 
             // update new location of padints
-            foreach (KeyValuePair<int, DataServerInfo> info in locationOfPadInts)
+            LinkedList<int> keys =  new LinkedList<int>(locationOfPadInts.Keys);
+            foreach (int uid in keys)
             {
-                if(info.Value.Id == id)
+                if(locationOfPadInts[uid].Id == id)
                 {
                     DataServerInfo newDataServerInfo = dataServers[(int)backupServerId];
 
-                    locationOfPadInts[info.Key] = newDataServerInfo; // talvez nao funcione parque esta a actualizar dentro do foreach
+                    locationOfPadInts[uid] = newDataServerInfo; // talvez nao funcione parque esta a actualizar dentro do foreach
                 }
             }
 
@@ -260,11 +261,13 @@ namespace PADI_DSTM_Master
                 DataServerInfo firstServerInfo = getFirstDataServerInfo();
                 DataServerInfo newServerInfo = new DataServerInfo(id, url, firstServerInfo.Id, firstServerInfo.Id);
                 IDataServer firstServer = getDataServerFromUrl(firstServerInfo.Url);
+                IDataServer newServer = getDataServerFromUrl(newServerInfo.Url);
 
                 firstServerInfo.BackupServerId = id;
                 firstServerInfo.BackedupServerId = id;
 
                 firstServer.transferPrimarysTo(url);
+                newServer.setBackupServer(firstServerInfo.Url);
 
                 dataServers.Add(id, newServerInfo);
             }

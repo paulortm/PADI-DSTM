@@ -56,6 +56,7 @@ namespace PADI_DSTM_DataServer
         // Provisory stage of the PadInt's before a commit
         // <tid, <uid, padint>>
         private Dictionary<int, Dictionary<int, DSPadint>> uncommitedChanges = new Dictionary<int, Dictionary<int, DSPadint>>();
+        private Dictionary<int, Dictionary<int, DSPadint>> backedUpUncommitedChanges = new Dictionary<int, Dictionary<int, DSPadint>>();
 
 
         private LinkedList<int> padintsBeingCommited = new LinkedList<int>();
@@ -99,6 +100,8 @@ namespace PADI_DSTM_DataServer
 
             try {
                 primaryPadints.Add(uid, new DSPadint(0, masterServer.generateTimestamp()));
+                if(backupServer != null)
+                    backupServer.addBackupPadInt(uid, primaryPadints[uid]);
                 Console.WriteLine("PadInt created: " + uid);
             } catch (ArgumentException) {
                 throw new InvalidPadIntIdException(uid);
@@ -242,16 +245,53 @@ namespace PADI_DSTM_DataServer
 
             Console.WriteLine("Number of PadInts: " + primaryPadints.Count());
 
+            Console.Write("Primary: ");
+            if (backupServer != null)
+            {
+                Console.WriteLine("backedup");
+            } else {
+                Console.WriteLine("not backedup");
+            }
             foreach (KeyValuePair<int, DSPadint> entry in primaryPadints)
             {
-                Console.WriteLine("PadInt<id, value, timestamp> = " + "<" + entry.Key + ", " + entry.Value.Value + ", " + entry.Value.Timestamp + ">");
+                Console.WriteLine("\tPadInt<id, value, timestamp> = " + "<" + entry.Key + ", " + entry.Value.Value + ", " + entry.Value.Timestamp + ">");
             }
+
+            Console.WriteLine("Backups:");
+            foreach (KeyValuePair<int, DSPadint> entry in backupPadints)
+            {
+                Console.WriteLine("\tPadInt<id, value, timestamp> = " + "<" + entry.Key + ", " + entry.Value.Value + ", " + entry.Value.Timestamp + ">");
+            }
+            
 
             Console.WriteLine("");
             Console.WriteLine("Dumping Uncommited Transactions:");
-
             int currentTxId = -1;
             foreach (KeyValuePair<int, Dictionary<int, DSPadint>> entry in uncommitedChanges)
+            {
+                Dictionary<int, DSPadint> uncommitedPadInts = entry.Value;
+
+                foreach (KeyValuePair<int, DSPadint> entry2 in uncommitedPadInts)
+                {
+                    if (currentTxId != entry.Key)
+                    {
+                        currentTxId = entry.Key;
+                        Console.Write("TxId: " + entry.Key + "\t --> PadInt<id, value, timestamp> = " + "<" + entry2.Key + "," + entry2.Value.Value + ", " + entry2.Value.Timestamp + ">\n");
+                    }
+                    else
+                    {
+                        Console.Write("      \t --> PadInt<id, value, timestamp> = " + "<" + entry2.Key + "," + entry2.Value.Value + ", " + entry2.Value.Timestamp + ">\n");
+                    }
+
+                }
+
+
+            }
+
+            Console.WriteLine("");
+            Console.WriteLine("Dumping Backedup Uncommited Transactions:");
+            currentTxId = -1;
+            foreach (KeyValuePair<int, Dictionary<int, DSPadint>> entry in backedUpUncommitedChanges)
             {
                 Dictionary<int, DSPadint> uncommitedPadInts = entry.Value;
 
@@ -323,6 +363,8 @@ namespace PADI_DSTM_DataServer
                 }
             }
 
+            backupServer.backupUncommitedChanges(tid, transactionValues);
+
             return true;
         }
 
@@ -335,6 +377,7 @@ namespace PADI_DSTM_DataServer
 
             // save the values on the padints dictionary
             Dictionary<int, DSPadint> transactionValues = this.uncommitedChanges[tid];
+            Dictionary<int, DSPadint> finalValues = new Dictionary<int,DSPadint>();
             foreach (KeyValuePair<int, DSPadint> padintValue in transactionValues)
             {
                 int uid = padintValue.Key;
@@ -350,6 +393,7 @@ namespace PADI_DSTM_DataServer
                     {
                         this.primaryPadints[uid].Value = uncommitedValue;
                         this.primaryPadints[uid].Timestamp = masterServer.generateTimestamp();
+                        finalValues.Add(uid, new DSPadint(uncommitedValue, this.primaryPadints[uid].Timestamp));
                     }
 
                 }
@@ -358,6 +402,8 @@ namespace PADI_DSTM_DataServer
             }
 
             this.uncommitedChanges.Remove(tid);
+
+            this.backupServer.commitBackedTransaction(tid, finalValues);
 
             return true;
         }
@@ -395,6 +441,13 @@ namespace PADI_DSTM_DataServer
             }
 
             this.backupPadints.Clear();
+
+            foreach (KeyValuePair<int, Dictionary<int, DSPadint>> padint in this.backedUpUncommitedChanges)
+            {
+                this.uncommitedChanges.Add(padint.Key, padint.Value);
+            }
+
+            this.backedUpUncommitedChanges.Clear();
         }
 
         private IDataServer getDataServerFromUrl(String url)
@@ -402,6 +455,34 @@ namespace PADI_DSTM_DataServer
             Console.WriteLine(url);
             return (IDataServer)Activator.GetObject(typeof(IDataServer), url);
         }
+
+        public void setBackupServer(String serverUrl) {
+            this.backupServer = getDataServerFromUrl(serverUrl);
+        }
+
+
+
+        public void backupUncommitedChanges(int tid, Dictionary<int, DSPadint> uncommitedChanges)
+        {
+            if (!backedUpUncommitedChanges.ContainsKey(tid))
+            {
+                backedUpUncommitedChanges.Add(tid, new Dictionary<int, DSPadint>());
+            }
+            foreach (KeyValuePair<int, DSPadint> padint in uncommitedChanges)
+            {
+                backedUpUncommitedChanges[tid].Add(padint.Key, padint.Value);
+            }
+        }
+
+        public void commitBackedTransaction(int tid, Dictionary<int, DSPadint> updatedValues) {
+            this.backedUpUncommitedChanges.Remove(tid);
+            foreach (KeyValuePair<int, DSPadint> updatedValue in updatedValues)
+            {
+                this.backupPadints[updatedValue.Key] = updatedValue.Value;
+            }
+        }
+
+
 
     }
 }

@@ -26,7 +26,7 @@ namespace InteractiveCliente
                     {
                         Console.WriteLine(PadiDstm.TxBegin());
                     }
-                    else if (command.Equals("commit"))
+                    else if (command.Equals("txcommit"))
                     {
                         Console.WriteLine(PadiDstm.TxCommit());
                     }
@@ -85,6 +85,14 @@ namespace InteractiveCliente
                         int uid = Int32.Parse(splitedInput[1]);
                         PadInt p = PadiDstm.CreatePadInt(uid);
                         accessiblePadInts[uid] = p;
+                    }
+                    else if (command.Equals("commit"))
+                    {
+                        Console.WriteLine(PadiDstm.Commit());
+                    }
+                    else if (command.Equals("cancommit"))
+                    {
+                        Console.WriteLine(PadiDstm.CanCommit());
                     }
                 }
                 catch (TxException e)
