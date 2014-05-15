@@ -135,7 +135,8 @@ namespace PADI_DSTM_DataServer
 
                     this.uncommitedChanges[tid].Add(uid, padint);
 
-                    backupServer.backupUncommitedPadint(tid, uid, padint);
+                    if (backupServer != null)
+                        backupServer.backupUncommitedPadint(tid, uid, padint);
 
                     return padint.Value;
                 }
@@ -154,7 +155,8 @@ namespace PADI_DSTM_DataServer
 
                 this.uncommitedChanges.Add(tid, changedPadInts);
 
-                backupServer.backupUncommitedPadint(tid, uid, padint);
+                if (backupServer != null)
+                    backupServer.backupUncommitedPadint(tid, uid, padint);
 
                 return padint.Value;
             }        
@@ -190,7 +192,8 @@ namespace PADI_DSTM_DataServer
                 this.uncommitedChanges.Add(tid, changedPadInts);
             }
 
-            backupServer.backupUncommitedPadint(tid, uid, this.uncommitedChanges[tid][uid]);
+            if(backupServer != null)
+                backupServer.backupUncommitedPadint(tid, uid, this.uncommitedChanges[tid][uid]);
         }
 
         public bool Fail()
@@ -369,8 +372,6 @@ namespace PADI_DSTM_DataServer
                 }
             }
 
-            
-
             return true;
         }
 
@@ -409,7 +410,8 @@ namespace PADI_DSTM_DataServer
 
             this.uncommitedChanges.Remove(tid);
 
-            this.backupServer.commitBackedTransaction(tid, finalValues);
+            if(this.backupServer != null)
+                this.backupServer.commitBackedTransaction(tid, finalValues);
 
             return true;
         }
@@ -488,5 +490,9 @@ namespace PADI_DSTM_DataServer
 
         }
 
+        public void setAsAlone()
+        {
+            this.backupServer = null;
+        }
     }
 }

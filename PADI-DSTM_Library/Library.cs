@@ -34,6 +34,7 @@ namespace PADI_DSTM
         {
             PadInt padint = PadiDstm.master.createPadIntOnDataServer(uid);
             padint.setTransactionHolder(currentTransactionHolder);
+            padint.setMaster(master);
             return padint;
         }
 
@@ -41,6 +42,7 @@ namespace PADI_DSTM
         {
             PadInt padint = PadiDstm.master.accessPadIntOnDataServer(uid);
             padint.setTransactionHolder(currentTransactionHolder);
+            padint.setMaster(master);
             return padint;
         }
 
@@ -97,6 +99,8 @@ namespace PADI_DSTM
             Transaction currentTransaction = PadiDstm.currentTransactionHolder.get();
             foreach (String serverUrl in currentTransaction.getServers())
             {
+                Console.WriteLine("greghrthtsrhtr no CANcommit " + serverUrl);
+
                 IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
                 if (!dataServer.canCommit(currentTransaction.getId()))
                 {
@@ -117,6 +121,8 @@ namespace PADI_DSTM
             Transaction currentTransaction = PadiDstm.currentTransactionHolder.get();
             foreach (String serverUrl in currentTransaction.getServers())
             {
+                Console.WriteLine("greghrthtsrhtr no commit " + serverUrl);
+
                 IDataServer dataServer = (IDataServer)Activator.GetObject(typeof(IDataServer), serverUrl);
                 if (!dataServer.Commit(currentTransaction.getId()))
                 {

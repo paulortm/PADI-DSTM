@@ -55,16 +55,23 @@ namespace InteractiveCliente
                     }
                     else if (command.Equals("write"))
                     {
-                        int uid = Int32.Parse(splitedInput[1]);
-                        int value = Int32.Parse(splitedInput[2]);
-                        if (!accessiblePadInts.ContainsKey(uid))
+                        if (splitedInput.Length >= 3)
                         {
-                            Console.WriteLine("That padint is not accessible");
-                            printAccessiblePadInts(accessiblePadInts);
+                            int uid = Int32.Parse(splitedInput[1]);
+                            int value = Int32.Parse(splitedInput[2]);
+                            if (!accessiblePadInts.ContainsKey(uid))
+                            {
+                                Console.WriteLine("That padint is not accessible");
+                                printAccessiblePadInts(accessiblePadInts);
+                            }
+                            else
+                            {
+                                accessiblePadInts[uid].Write(value);
+                            }
                         }
                         else
                         {
-                            accessiblePadInts[uid].Write(value);
+                            Console.WriteLine("to few args");
                         }
                     }
                     else if (command.Equals("read"))

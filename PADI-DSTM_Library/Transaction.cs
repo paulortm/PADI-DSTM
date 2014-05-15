@@ -33,6 +33,12 @@ namespace PADI_DSTM_CommonLib
             }
         }
 
+        public void changeServer(String from, String to)
+        {
+            serverUrls.Remove(from);
+            serverUrls.Add(to);
+        }
+
         public List<String> getServers()
         {
             return this.serverUrls;
@@ -89,6 +95,15 @@ namespace PADI_DSTM
     {
         public NotInitializedLibException()
             : base("Must call PadiDstm.Init() before calling any other method.")
+        {
+            // empty
+        }
+    }
+
+    public class ServerNotFoundException : TxException
+    {
+        public ServerNotFoundException(int uid)
+            : base("Can't find the server were the padint " + uid + " is stored")
         {
             // empty
         }

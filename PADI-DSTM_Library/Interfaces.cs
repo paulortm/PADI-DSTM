@@ -26,6 +26,8 @@ namespace PADI_DSTM_CommonLib
         PadInt accessPadIntOnDataServer(int uid);
 
         Transaction createTransaction();
+
+        String getLocationOfPadInt(int uid);
     }
 
     public interface IDataServer
@@ -73,5 +75,6 @@ namespace PADI_DSTM_CommonLib
 
         void backupUncommitedPadint(int tid, int uid, DSPadint padint);
 
+        void setAsAlone();
     }
 }

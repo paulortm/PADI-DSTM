@@ -137,7 +137,7 @@ namespace PADI_DSTM_Master
             Console.WriteLine("Server with id = {0} is dead. Performing recover.. Wait!", id);
 
             // change pointers to DataServersInfo
-            int? backupServerId = dataServers[id].BackupServerId;
+            int? backupServerId   = dataServers[id].BackupServerId;
             int? backedupServerId = dataServers[id].BackedupServerId;
 
             dataServers.Remove(id);
@@ -166,16 +166,16 @@ namespace PADI_DSTM_Master
                 {
                     DataServerInfo newDataServerInfo = dataServers[(int)backupServerId];
 
-                    locationOfPadInts[uid] = newDataServerInfo; // talvez nao funcione parque esta a actualizar dentro do foreach
+                    locationOfPadInts[uid] = newDataServerInfo;
                 }
             }
 
             // make server update data
             IDataServer backupServer = getDataServerFromUrl(dataServers[(int)backupServerId].Url);
-            IDataServer backedupServer = getDataServerFromUrl(dataServers[(int)backedupServerId].Url);
 
             if (dataServers.Count > 1)
             {
+                IDataServer backedupServer = getDataServerFromUrl(dataServers[(int)backedupServerId].Url);
                 backupServer.transferBackupTo(backedupServer);
                 backupServer.setBackupAsPrimary();
                 backedupServer.transferPrimarysTo(dataServers[(int)backupServerId].Url);
@@ -183,6 +183,7 @@ namespace PADI_DSTM_Master
             else
             {
                 backupServer.setBackupAsPrimary();
+                backupServer.setAsAlone();
             }
 
             Console.WriteLine("Recover Done!");
@@ -204,8 +205,11 @@ namespace PADI_DSTM_Master
 
             for(int i = 0; i < dataServerId; i++)
             {
-                Console.WriteLine("DataServer " + i + " url:           " + dataServers[i]);
-                Console.WriteLine("DataServer " + i + " total PadInts: " + numberOfPadInts[i]);
+                if (dataServers.ContainsKey(i))
+                {
+                    Console.WriteLine("DataServer " + i + " url:           " + dataServers[i]);
+                    Console.WriteLine("DataServer " + i + " total PadInts: " + numberOfPadInts[i]);
+                }
             }
 
             foreach (KeyValuePair<int, DataServerInfo> entry in dataServers)
@@ -374,6 +378,11 @@ namespace PADI_DSTM_Master
         public Transaction createTransaction() {
             Transaction t = new Transaction(generateTransactionId());
             return t;
+        }
+
+        public String getLocationOfPadInt(int uid)
+        {
+            return getPrimaryDataServerUrl(uid);
         }
     }
 }
