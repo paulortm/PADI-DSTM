@@ -212,7 +212,7 @@ namespace PADI_DSTM_DataServer
         public bool Freeze()
         {
             doFreeze = true;
-            doFreeze = false;
+            doFail = false;
             Console.WriteLine("Freeze mode activated");
 
             return true;
@@ -220,8 +220,6 @@ namespace PADI_DSTM_DataServer
 
         public bool Recover()
         {
-            doFail = false;
-            doFreeze = false;
             if (doFreeze)
             {
                 lock (this)
@@ -231,8 +229,8 @@ namespace PADI_DSTM_DataServer
             }
             else if(doFail)
             {
-                IMaster masterServer = null;
-                IDataServer backupServer = null;
+                masterServer = null;
+                backupServer = null;
 
                 this.primaryPadints = new Dictionary<int, DSPadint>();
                 this.backupPadints = new Dictionary<int, DSPadint>();
@@ -244,7 +242,14 @@ namespace PADI_DSTM_DataServer
 
                 this.doFail = false;
                 this.doFreeze = false;
+
+                this.setId(masterServer.registerDataServer(this.serverUrl));
+                this.imAliveTimer.Start();
+
             }
+
+            doFail = false;
+            doFreeze = false;
 
             return true;
         }

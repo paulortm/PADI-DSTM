@@ -101,6 +101,10 @@ namespace InteractiveCliente
                     {
                         Console.WriteLine(PadiDstm.CanCommit());
                     }
+                    else if (command.Equals("fail"))
+                    {
+                        PadiDstm.Fail(splitedInput[1]);
+                    }
                 }
                 catch (TxException e)
                 {
