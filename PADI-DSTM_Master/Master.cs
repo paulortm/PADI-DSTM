@@ -186,6 +186,7 @@ namespace PADI_DSTM_Master
                 backupServer.setAsAlone();
             }
 
+            numberOfPadInts.Remove(id);
             Console.WriteLine("Recover Done!");
         }
 

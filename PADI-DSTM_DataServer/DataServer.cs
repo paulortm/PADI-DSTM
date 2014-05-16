@@ -229,7 +229,6 @@ namespace PADI_DSTM_DataServer
             }
             else if(doFail)
             {
-                masterServer = null;
                 backupServer = null;
 
                 this.primaryPadints = new Dictionary<int, DSPadint>();
@@ -469,6 +468,14 @@ namespace PADI_DSTM_DataServer
             foreach (KeyValuePair<int, DSPadint> padint in primaryPadints)
             {
                 server.addBackupPadInt(padint.Key, padint.Value);
+            }
+            // transfer uncommited changes
+            foreach (KeyValuePair<int, Dictionary<int, DSPadint>> transaction in uncommitedChanges)
+            {
+                foreach (KeyValuePair<int, DSPadint> change in transaction.Value)
+                {
+                    server.backupUncommitedPadint(transaction.Key, change.Key, change.Value);
+                }
             }
             this.backupServer = server;
              
