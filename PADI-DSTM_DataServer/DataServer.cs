@@ -35,6 +35,7 @@ namespace PADI_DSTM_DataServer
                 Constants.REMOTE_DATASERV_OBJ_NAME, 
                 typeof(IDataServer) );
             dataServer.setId(masterServer.registerDataServer(dataServerUrl));
+            dataServer.startImAlives();
 
             Console.WriteLine("Press <enter> to exit");
             Console.ReadLine();
@@ -61,32 +62,34 @@ namespace PADI_DSTM_DataServer
 
         private LinkedList<int> padintsBeingCommited = new LinkedList<int>();
 
-
-        private Mutex mutex = new Mutex();
-
         private bool doFail = false;
         private bool doFreeze = false;
 
-        private static System.Timers.Timer ImAliveTimer;
+        private System.Timers.Timer imAliveTimer;
 
         public DataServer(IMaster master, String serverUrl) {
-
             this.serverUrl = serverUrl;
             this.masterServer = master;
-
-
-            ImAliveTimer = new System.Timers.Timer(1);
-
-            // Hook up the Elapsed event for the timer.
-            ImAliveTimer.Elapsed += new ElapsedEventHandler(sendImAlive);
-
-            // Set the Interval to 2 seconds (2000 milliseconds).
-            ImAliveTimer.Interval = Constants.HEARTBEAT_SEND_INTERVAL;
-            ImAliveTimer.Enabled = true;
-            Console.WriteLine("server {0}", this.id);
         }
 
-        public void setId(int id) { this.id = id; }
+        public void startImAlives()
+        {
+            this.checkFailOrFreeze();
+            imAliveTimer = new System.Timers.Timer(1);
+
+            // Hook up the Elapsed event for the timer.
+            imAliveTimer.Elapsed += new ElapsedEventHandler(sendImAlive);
+
+            // Set the Interval to 2 seconds (2000 milliseconds).
+            imAliveTimer.Interval = Constants.HEARTBEAT_SEND_INTERVAL;
+            imAliveTimer.Enabled = true;
+        }
+
+        public void setId(int id)
+        {
+            Console.WriteLine("server {0}", id);
+            this.id = id;
+        }
 
         private void sendImAlive(object source, ElapsedEventArgs e)
         {
@@ -199,7 +202,9 @@ namespace PADI_DSTM_DataServer
         public bool Fail()
         {
             doFail = true;
+            doFreeze = false;
             Console.WriteLine("Fail mode activated");
+            this.imAliveTimer.Stop();
 
             return true;
         }
@@ -207,6 +212,7 @@ namespace PADI_DSTM_DataServer
         public bool Freeze()
         {
             doFreeze = true;
+            doFreeze = false;
             Console.WriteLine("Freeze mode activated");
 
             return true;
@@ -216,6 +222,29 @@ namespace PADI_DSTM_DataServer
         {
             doFail = false;
             doFreeze = false;
+            if (doFreeze)
+            {
+                lock (this)
+                {
+                    Monitor.PulseAll(this);
+                }
+            }
+            else if(doFail)
+            {
+                IMaster masterServer = null;
+                IDataServer backupServer = null;
+
+                this.primaryPadints = new Dictionary<int, DSPadint>();
+                this.backupPadints = new Dictionary<int, DSPadint>();
+                this.uncommitedChanges = new Dictionary<int, Dictionary<int, DSPadint>>();
+                this.backedUpUncommitedChanges = new Dictionary<int, Dictionary<int, DSPadint>>();
+
+                this.padintsBeingCommited = new LinkedList<int>();
+
+
+                this.doFail = false;
+                this.doFreeze = false;
+            }
 
             return true;
         }
@@ -225,7 +254,6 @@ namespace PADI_DSTM_DataServer
             if(doFail)
             {
                 Console.WriteLine("Fail mode activated");
-
                 throw new ServerFailedException(Util.getLocalIP());
             }
 
@@ -233,15 +261,9 @@ namespace PADI_DSTM_DataServer
             {
                 Console.WriteLine("Freeze mode activated");
 
-                while(doFreeze)
+                lock (this)
                 {
-                    // wait recover
-                    if(doFail)
-                    {
-                        Console.WriteLine("Fail mode activated");
-
-                        throw new ServerFailedException(Util.getLocalIP());
-                    }
+                    Monitor.Wait(this);
                 }
             }
         }
@@ -328,6 +350,7 @@ namespace PADI_DSTM_DataServer
 
         public bool Abort(int tid)
         {
+            this.checkFailOrFreeze();
             if(!this.uncommitedChanges.ContainsKey(tid))
             {
                 throw new TransactionNotFoundException(tid, this.serverUrl);
@@ -341,6 +364,7 @@ namespace PADI_DSTM_DataServer
 
         public bool canCommit(int tid)
         {
+            this.checkFailOrFreeze();
             lock(this.padintsBeingCommited) {
 
                 foreach (KeyValuePair<int, DSPadint> entry in this.uncommitedChanges[tid])
@@ -377,6 +401,7 @@ namespace PADI_DSTM_DataServer
 
         public bool Commit(int tid)
         {
+            this.checkFailOrFreeze();
             if (!this.uncommitedChanges.ContainsKey(tid))
             {
                 throw new TransactionNotFoundException(tid, this.serverUrl);
@@ -418,6 +443,7 @@ namespace PADI_DSTM_DataServer
 
         public void transferBackupTo(IDataServer server)
         {
+            this.checkFailOrFreeze();
             foreach (KeyValuePair<int, DSPadint> padint in backupPadints)
             {
                 server.addBackupPadInt(padint.Key, padint.Value);
@@ -426,11 +452,13 @@ namespace PADI_DSTM_DataServer
 
         public void addBackupPadInt(int uid, DSPadint padint)
         {
+            this.checkFailOrFreeze();
             this.backupPadints.Add(uid, padint);
         }
 
         public void transferPrimarysTo(String serverUrl)
         {
+            this.checkFailOrFreeze();
             
             IDataServer server =  getDataServerFromUrl(serverUrl);
             foreach (KeyValuePair<int, DSPadint> padint in primaryPadints)
@@ -443,6 +471,7 @@ namespace PADI_DSTM_DataServer
 
         public void setBackupAsPrimary()
         {
+            this.checkFailOrFreeze();
             foreach (KeyValuePair<int, DSPadint> padint in this.backupPadints)
             {
                 this.primaryPadints.Add(padint.Key, padint.Value);
@@ -460,16 +489,21 @@ namespace PADI_DSTM_DataServer
 
         private IDataServer getDataServerFromUrl(String url)
         {
+            this.checkFailOrFreeze();
             Console.WriteLine(url);
             return (IDataServer)Activator.GetObject(typeof(IDataServer), url);
         }
 
         public void setBackupServer(String serverUrl) {
+
+            this.checkFailOrFreeze();
             this.backupServer = getDataServerFromUrl(serverUrl);
         }
 
 
         public void commitBackedTransaction(int tid, Dictionary<int, DSPadint> updatedValues) {
+
+            this.checkFailOrFreeze();
             this.backedUpUncommitedChanges.Remove(tid);
             foreach (KeyValuePair<int, DSPadint> updatedValue in updatedValues)
             {
@@ -480,6 +514,7 @@ namespace PADI_DSTM_DataServer
 
         public void backupUncommitedPadint(int tid, int uid, DSPadint padint)
         {
+            this.checkFailOrFreeze();
 
             if (!this.backedUpUncommitedChanges.ContainsKey(tid))
             {
@@ -492,6 +527,7 @@ namespace PADI_DSTM_DataServer
 
         public void setAsAlone()
         {
+            this.checkFailOrFreeze();
             this.backupServer = null;
         }
     }

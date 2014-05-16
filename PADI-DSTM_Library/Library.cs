@@ -17,10 +17,7 @@ namespace PADI_DSTM
 
         public static bool Init()
         {
-            Console.Write("Choose port:");
-            int port = Convert.ToInt32(Console.ReadLine());
-
-            TcpChannel channel = new TcpChannel(port);
+            TcpChannel channel = new TcpChannel();
             ChannelServices.RegisterChannel(channel, true);
 
             PadiDstm.master = (IMaster)Activator.GetObject(typeof(IMaster), Constants.MASTER_SERVER_URL);
